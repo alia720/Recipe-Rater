@@ -6,7 +6,7 @@ function App() {
   return (
     <div className="min-h-screen w-full bg-black">
       <Navbar />
-      <div>Hello World!</div>
+      <div className="text-white">Hello World!</div>
     </div>
   );
 } export default App;
