@@ -15,25 +15,29 @@ const RecipeDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-3xl font-bold mb-4">{recipe.title}</h1>
-      <img
-        src={recipe.image}
-        alt={recipe.title}
-        className="w-full max-w-md mb-4 rounded"
-      />
-      <p className="mb-4">{recipe.description}</p>
-      <h2 className="text-2xl font-bold mb-2">Ingredients</h2>
-      <ul className="list-disc ml-6 mb-4">
-        {recipe.ingredients.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </ul>
-      <h2 className="text-2xl font-bold mb-2">Instructions</h2>
-      <p>{recipe.instructions}</p>
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <div className="bg-gray-900 p-8 rounded-lg shadow-lg max-w-2xl w-full">
+        <h1 className="text-3xl font-bold mb-4 text-center">{recipe.title}</h1>
+        <div className="flex justify-center">
+          <img
+            src={recipe.image}
+            alt={recipe.title}
+            className="w-full max-w-md mb-4 rounded"
+          />
+        </div>
+        <p className="mb-4 text-center">{recipe.description}</p>
+        <h2 className="text-2xl font-bold mb-2">Ingredients</h2>
+        <ul className="list-disc ml-6 mb-4">
+          {recipe.ingredients.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ul>
+        <h2 className="text-2xl font-bold mb-2">Instructions</h2>
+        <p>{recipe.instructions}</p>
 
-      {/* Add Comment & Rating Section */}
-      <CommentRatingSection />
+        {/* Add Comment & Rating Section */}
+        <CommentRatingSection />
+      </div>
     </div>
   );
 };
