@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { FaStar } from "react-icons/fa";
 
 const RecipeCard = ({ recipe }) => {
-  // Use local state for rating and vote status.
+  // Use local state for rating and vote status, for now.
   const [rating, setRating] = useState(recipe.rating || 0);
   const [hasVoted, setHasVoted] = useState(false);
 

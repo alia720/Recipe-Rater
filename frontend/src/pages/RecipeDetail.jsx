@@ -8,7 +8,7 @@ const RecipeDetail = () => {
   const recipe = {
     id,
     title: "Sample Recipe",
-    image: "https://via.placeholder.com/400x300",
+    image: "https://www.tamingtwins.com/wp-content/uploads/2025/01/spaghetti-bolognese-10.jpg",
     description: "A delicious sample recipe.",
     ingredients: ["1 cup ingredient A", "2 tbsp ingredient B"],
     instructions: "Mix all ingredients and cook for 20 minutes.",

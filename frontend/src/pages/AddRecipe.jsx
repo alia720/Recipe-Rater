@@ -11,7 +11,7 @@ const AddRecipe = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // In production, send the new recipe data to your backend API.
+    // In production, send new recipe data to backend API.
     const newRecipe = {
       title,
       image,
