@@ -1,50 +1,48 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const toggleMenu = () => setIsOpen(!isOpen);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+  // Update links as desired.
+  const menuItems = [
+    { name: "Home", path: "/home" },
+    { name: "Add Recipe", path: "/add-recipe" },
+    { name: "Login", path: "/login" },
+    { name: "Sign Up", path: "/signup" },
+  ];
 
   return (
     <>
       <nav className="bg-black w-full fixed top-0 left-0 right-0 z-50">
-        {/* Gradient line at the top */}
+        {/* Gradient line */}
         <div className="h-0.5 w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
-        
-        <div className="flex justify-between items-center py-4 px-6 w-full backdrop-blur-sm bg-black/90">
-          {/* Empty div for spacing on mobile */}
-          <div className="lg:hidden"></div>
 
-          {/* Menu for larger screens */}
+        <div className="flex justify-between items-center py-4 px-6 w-full backdrop-blur-sm bg-black/90">
+          <div className="lg:hidden"></div>
           <div className="hidden lg:flex w-full justify-center">
-            <ul className="text-white flex gap-x-12 font-light tracking-wide text-lg">
-              {['Something', 'Somethins', 'Somethin', 'Settings'].map((item, index) => (
-                <li key={item} className="relative py-2 group">
-                  <a
-                    href="#"
+            <ul className="text-white flex gap-x-6 font-light tracking-wide text-lg">
+              {menuItems.map((item) => (
+                <li key={item.name} className="relative py-2 group">
+                  <Link
+                    to={item.path}
                     className="inline-block relative no-underline transform transition-transform duration-300 group-hover:-translate-y-0.5"
                   >
-                    {/* Glowing dot */}
                     <span className="absolute -left-4 top-1/2 w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform -translate-y-1/2" />
-                    
-                    {/* Text with hover effect */}
                     <span className="relative z-10">
-                      {item}
-                      {/* Center-expanding underline */}
+                      {item.name}
                       <span className="absolute bottom-[-6px] left-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300 -translate-x-1/2 group-hover:left-0 group-hover:translate-x-0" />
                     </span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Animated Hamburger Icon - Right-aligned on mobile */}
           <div className="lg:hidden">
-            <button 
-              onClick={toggleMenu} 
+            <button
+              onClick={toggleMenu}
               className="relative w-8 h-8 focus:outline-none group"
               aria-label="Toggle Menu"
             >
@@ -59,16 +57,11 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Animated Mobile Menu */}
-        <div 
-          className={`lg:hidden flex justify-center items-center bg-black/90 backdrop-blur-sm w-full overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0'
-          }`}
-        >
-          <ul className="text-white flex flex-col gap-y-6 font-light tracking-wide text-lg">
-            {['Something', 'Somethins', 'Somethin', 'Settings'].map((item, index) => (
-              <li 
-                key={item} 
+        <div className={`lg:hidden flex justify-center items-center bg-black/90 backdrop-blur-sm w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0'}`}>
+          <ul className="text-white flex flex-col gap-y-4 font-light tracking-wide text-lg">
+            {menuItems.map((item, index) => (
+              <li
+                key={item.name}
                 className="relative py-2 group"
                 style={{
                   animation: isOpen ? `slideIn 0.4s ease-out ${index * 0.1}s forwards` : 'none',
@@ -76,24 +69,18 @@ const Navbar = () => {
                   transform: 'translateY(20px)'
                 }}
               >
-                <a
-                  href="#"
-                  className="inline-block relative no-underline"
-                >
+                <Link to={item.path} className="inline-block relative no-underline">
                   <span className="relative">
-                    {item}
-                    {/* Center-expanding underline for mobile menu */}
+                    {item.name}
                     <span className="absolute bottom-[-6px] left-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300 -translate-x-1/2 group-hover:left-0 group-hover:translate-x-0" />
                   </span>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
         </div>
       </nav>
-      {/* Spacer div to prevent content from going under navbar */}
       <div className="h-[73px]" />
-
       <style jsx>{`
         @keyframes slideIn {
           from {
