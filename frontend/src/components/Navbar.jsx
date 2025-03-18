@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
 
-  // Update links as desired.
   const menuItems = [
     { name: "Home", path: "/home" },
     { name: "Add Recipe", path: "/add-recipe" },
@@ -21,8 +22,9 @@ const Navbar = () => {
 
         <div className="flex justify-between items-center py-4 px-6 w-full backdrop-blur-sm bg-black/90">
           <div className="lg:hidden"></div>
+          {/* Desktop Menu with increased spacing */}
           <div className="hidden lg:flex w-full justify-center">
-            <ul className="text-white flex gap-x-6 font-light tracking-wide text-lg">
+            <ul className="text-white flex gap-x-15 font-light tracking-wide text-lg">
               {menuItems.map((item) => (
                 <li key={item.name} className="relative py-2 group">
                   <Link
@@ -40,6 +42,7 @@ const Navbar = () => {
             </ul>
           </div>
 
+          {/* Hamburger Icon for mobile */}
           <div className="lg:hidden">
             <button
               onClick={toggleMenu}
@@ -57,8 +60,9 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile Menu */}
         <div className={`lg:hidden flex justify-center items-center bg-black/90 backdrop-blur-sm w-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0'}`}>
-          <ul className="text-white flex flex-col gap-y-4 font-light tracking-wide text-lg">
+          <ul className="text-white flex flex-col gap-y-6 font-light tracking-wide text-lg">
             {menuItems.map((item, index) => (
               <li
                 key={item.name}
