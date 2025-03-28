@@ -1,14 +1,40 @@
-import express from "express"
+// index.js
+import express from "express";
+import dotenv from "dotenv";
+import pool from "./db.js";
 
-const app = express()
+dotenv.config();
 
-const recipeRoutes = require('./routes/recipe');
-const userRoutes = require('./routes/user');
-const submitsRoutes = require('./routes/submits');
-// etc. (import other route files if not using routes/index.js)
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-app.use(express.json())
+// Middleware to parse JSON bodies in requests
+app.use(express.json());
 
-app.listen(8800, ()=>{
-    console.log("Listening")
-})
+// A sample route to get all recipes
+app.get("/api/recipe", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM recipe");
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching recipes:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// A default route
+app.get("/", (req, res) => {
+  res.send("Welcome to the Recipe API");
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
+// To Run and test, first:
+// node index.js
+
+// Then you can:
+// go to ur browser and http://localhost:5000/api/recipe
