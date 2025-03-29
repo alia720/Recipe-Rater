@@ -1,3 +1,4 @@
+// src/pages/AddRecipe.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,16 +12,32 @@ const AddRecipe = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // In production, send new recipe data to backend API.
+
+    // Build new recipe data, we'll adjust keys based on backend
     const newRecipe = {
-      title,
-      image,
-      description,
-      ingredients: ingredients.split("\n"), // Each line is an ingredient.
-      instructions,
+      name: title, // Our backend expects a "name" field
+      steps: `Description: ${description}\nIngredients: ${ingredients}\nInstructions: ${instructions}`,
     };
-    console.log("New recipe submitted:", newRecipe);
-    navigate("/dashboard");
+
+    // Post the data to the backend endpoint
+    fetch("http://localhost:5000/api/recipes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newRecipe),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to create recipe");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Recipe created:", data);
+        navigate("/home");
+      })
+      .catch((error) => console.error("Error:", error));
   };
 
   return (
@@ -40,16 +57,7 @@ const AddRecipe = () => {
             required
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-300 mb-1">Image URL</label>
-          <input
-            type="url"
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-            className="w-full p-2 rounded bg-gray-800 text-white"
-            required
-          />
-        </div>
+        {/* Additional form fields for image, description, ingredients, instructions */}
         <div className="mb-4">
           <label className="block text-gray-300 mb-1">Description</label>
           <textarea

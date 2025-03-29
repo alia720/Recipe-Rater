@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { FaStar } from "react-icons/fa";
 
 const RecipeCard = ({ recipe }) => {
-  // Use local state for rating and vote status, for now.
+  // Local state for rating; backend data may not include a rating, so default to 0.
   const [rating, setRating] = useState(recipe.rating || 0);
   const [hasVoted, setHasVoted] = useState(false);
 
@@ -14,18 +14,18 @@ const RecipeCard = ({ recipe }) => {
     }
   };
 
+  // Truncate the steps field to serve as description (we'll adjust the length later if need be)
+  const description =
+    recipe.steps && recipe.steps.length > 100
+      ? recipe.steps.substring(0, 100) + "..."
+      : recipe.steps;
+
   return (
     <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-      <img
-        src={recipe.image}
-        alt={recipe.title}
-        className="w-full h-48 object-cover"
-      />
       <div className="p-4">
-        <h3 className="text-xl font-bold text-white mb-2">{recipe.title}</h3>
-        <p className="text-gray-400">{recipe.description}</p>
+        <h3 className="text-xl font-bold text-white mb-2">{recipe.name}</h3>
+        <p className="text-gray-400">{description}</p>
         <div className="flex items-center mt-2">
-          {/* Star button: color changes when clicked */}
           <button onClick={handleRatingClick} className="focus:outline-none">
             <FaStar
               size={24}
@@ -35,7 +35,7 @@ const RecipeCard = ({ recipe }) => {
           <span className="text-white ml-2">{rating}</span>
         </div>
         <Link
-          to={`/recipe/${recipe.id}`}
+          to={`/recipe/${recipe.recipe_id}`}
           className="text-blue-500 mt-2 inline-block"
         >
           View Recipe

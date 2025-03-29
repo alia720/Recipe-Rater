@@ -10,7 +10,7 @@ import "./index.css";
 
 // For now, use a placeholder flag
 // In real app, we would prob check localStorage or context/provider.
-const isAuthenticated = false;
+const isAuthenticated = true;
 
 function App() {
   return (

@@ -14,6 +14,8 @@ import adminRemovesRatingRoutes from './routes/adminRemovesRating.js';
 import customerRoutes from './routes/customer.js';
 import adminRoutes from './routes/admin.js';
 import categoryRoutes from "./routes/category.js";
+import cors from "cors";
+
 dotenv.config();
 
 const app = express();
@@ -22,6 +24,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware to parse JSON bodies in requests
 app.use(express.json());
 
+app.use(cors());
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/ratings', ratingRoutes);
@@ -35,17 +38,6 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/admins', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 
-
-// A sample route to get all recipes
-app.get("/api/recipes", async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM recipe");
-    res.json(rows);
-  } catch (error) {
-    console.error("Error fetching recipes:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
 // A default route
 app.get("/", (req, res) => {

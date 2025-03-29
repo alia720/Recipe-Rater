@@ -85,7 +85,7 @@ const Navbar = () => {
         </div>
       </nav>
       <div className="h-[73px]" />
-      <style jsx>{`
+      <style>{`
         @keyframes slideIn {
           from {
             opacity: 0;
