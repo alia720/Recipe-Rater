@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware to parse JSON bodies in requests
 app.use(express.json());
-app.use('/api/recipe', recipeRoutes);
+app.use('/api/recipes', recipeRoutes);
 
 // A sample route to get all recipes
 app.get("/api/recipe", async (req, res) => {
