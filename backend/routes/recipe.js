@@ -1,21 +1,32 @@
 // routes/recipeRoutes.js
-const express = require('express');
-const router = express.Router();
-const recipeController = require('../controllers/recipeController');
+import { Router } from 'express';
+import {
+    getAllRecipes,
+    getRecipeById,
+    searchRecipes,
+    createRecipe,
+    updateRecipe,
+    deleteRecipe
+} from '../controllers/recipeController.js';
 
-// Route to get all recipes
-router.get('/recipes', recipeController.getRecipes);
+const router = Router();
 
-// Route to get a recipe by id
-router.get('/recipes/:id', recipeController.getRecipeById);
+// GET all recipes (with optional pagination)
+router.get('/', getAllRecipes);
 
-// Route to create a new recipe
-router.post('/recipes', recipeController.createRecipe);
+// GET single recipe by ID
+router.get('/:id', getRecipeById);
 
-// Route to update an existing recipe
-router.put('/recipes/:id', recipeController.updateRecipe);
+// Search recipes by name (ex: /api/recipes/search?query=chicken)
+router.get('/search/query', searchRecipes);
 
-// Route to delete a recipe
-router.delete('/recipes/:id', recipeController.deleteRecipe);
+// CREATE a new recipe
+router.post('/', createRecipe);
 
-module.exports = router;
+// UPDATE a recipe by ID
+router.put('/:id', updateRecipe);
+
+// DELETE a recipe by ID
+router.delete('/:id', deleteRecipe);
+
+export default router;
