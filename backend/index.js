@@ -4,7 +4,9 @@ import dotenv from "dotenv";
 import pool from "./db.js";
 import recipeRoutes from "./routes/recipe.js";
 import ingredientRoutes from "./routes/ingredient.js";
-
+import ratingRoutes from "./routes/rating.js";
+import commentRoutes from "./routes/comment.js";
+import photoRoutes from "./routes/photo.js";
 dotenv.config();
 
 const app = express();
@@ -14,9 +16,12 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/ingredients', ingredientRoutes);
+app.use('/api/ratings', ratingRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/photos', photoRoutes);
 
 // A sample route to get all recipes
-app.get("/api/recipe", async (req, res) => {
+app.get("/api/recipes", async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT * FROM recipe");
     res.json(rows);
