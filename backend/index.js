@@ -3,6 +3,8 @@ import express from "express";
 import dotenv from "dotenv";
 import pool from "./db.js";
 import recipeRoutes from "./routes/recipe.js";
+import ingredientRoutes from "./routes/ingredient.js";
+
 dotenv.config();
 
 const app = express();
@@ -11,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware to parse JSON bodies in requests
 app.use(express.json());
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/ingredients', ingredientRoutes);
 
 // A sample route to get all recipes
 app.get("/api/recipe", async (req, res) => {
