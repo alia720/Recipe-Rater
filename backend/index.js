@@ -7,6 +7,10 @@ import ingredientRoutes from "./routes/ingredient.js";
 import ratingRoutes from "./routes/rating.js";
 import commentRoutes from "./routes/comment.js";
 import photoRoutes from "./routes/photo.js";
+import submitsRoutes from './routes/submits.js';
+import belongsToRoutes from './routes/belongsTo.js';
+import likesDislikesRoutes from './routes/likesDislikes.js';
+import adminRemovesRatingRoutes from './routes/adminRemovesRating.js';
 dotenv.config();
 
 const app = express();
@@ -19,6 +23,10 @@ app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/photos', photoRoutes);
+app.use('/api/submits', submitsRoutes);
+app.use('/api/belongs-to', belongsToRoutes);
+app.use('/api/likes-dislikes', likesDislikesRoutes);
+app.use('/api/admin-removes-rating', adminRemovesRatingRoutes);
 
 // A sample route to get all recipes
 app.get("/api/recipes", async (req, res) => {
