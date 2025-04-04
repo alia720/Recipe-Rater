@@ -8,7 +8,6 @@ const RecipeDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the recipe from backend using the recipe_id
     fetch(`http://localhost:5000/api/recipes/${id}`)
       .then((res) => res.json())
       .then((data) => {
