@@ -34,7 +34,16 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false }
 }));
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      callback(null, origin);
+    },
+    credentials: true,
+  })
+);
+
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ingredients', ingredientRoutes);

@@ -61,6 +61,7 @@ CREATE TABLE comments (
                           user_id    INT NOT NULL,
                           title      VARCHAR(255),
                           text       TEXT,
+                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                           FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id),
                           FOREIGN KEY (user_id)   REFERENCES user(user_id)
 );
