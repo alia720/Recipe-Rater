@@ -6,16 +6,16 @@ import { useUser } from "../context/UserContext";
 const CommentRatingSection = () => {
   const { id: recipeId } = useParams();
   const { user } = useUser();
-  
+
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState("");
   const [commentTitle, setCommentTitle] = useState("");
   const [rating, setRating] = useState(0);
   const [userRating, setUserRating] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [commentError, setCommentError] = useState(null);
+  const [ratingError, setRatingError] = useState(null);
 
-  // Fetch comments when component mounts
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -23,17 +23,17 @@ const CommentRatingSection = () => {
         const response = await fetch(`http://localhost:5000/api/comments/recipe/${recipeId}`, {
           credentials: "include"
         });
-        
+
         if (!response.ok) {
           throw new Error("Failed to fetch comments");
         }
-        
+
         const data = await response.json();
         setComments(data);
         setIsLoading(false);
       } catch (err) {
         console.error("Error fetching comments:", err);
-        setError("Failed to load comments. Please try again.");
+        setCommentError("Failed to load comments. Please try again.");
         setIsLoading(false);
       }
     };
@@ -43,20 +43,20 @@ const CommentRatingSection = () => {
     }
   }, [recipeId]);
 
-  // Submit a new comment
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    
+    setCommentError(null);
+
     if (!user) {
-      setError("You must be logged in to leave a comment");
+      setCommentError("You must be logged in to leave a comment");
       return;
     }
-    
+
     if (!commentInput.trim()) {
-      setError("Comment cannot be empty");
+      setCommentError("Comment cannot be empty");
       return;
     }
-    
+
     try {
       const response = await fetch("http://localhost:5000/api/comments", {
         method: "POST",
@@ -71,40 +71,36 @@ const CommentRatingSection = () => {
           text: commentInput
         })
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to post comment");
       }
-      
-      // Refresh comments after posting
+
       const updatedResponse = await fetch(`http://localhost:5000/api/comments/recipe/${recipeId}`, {
         credentials: "include"
       });
-      
+
       if (!updatedResponse.ok) {
         throw new Error("Failed to refresh comments");
       }
-      
+
       const updatedData = await updatedResponse.json();
       setComments(updatedData);
-      
-      // Clear input fields
       setCommentInput("");
       setCommentTitle("");
-      setError(null);
+      setCommentError(null);
     } catch (err) {
       console.error("Error posting comment:", err);
-      setError("Failed to post comment. Please try again.");
+      setCommentError("Failed to post comment. Please try again.");
     }
   };
 
-  // Handle star rating
   const handleRatingSubmit = async (value) => {
     if (!user) {
-      setError("You must be logged in to rate this recipe");
+      setRatingError("You must be logged in to rate this recipe");
       return;
     }
-    
+
     try {
       const response = await fetch("http://localhost:5000/api/ratings", {
         method: "POST",
@@ -118,19 +114,19 @@ const CommentRatingSection = () => {
           rating_value: value
         })
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to submit rating");
       }
-      
+
       setUserRating(value);
+      setRatingError(null);
     } catch (err) {
       console.error("Error submitting rating:", err);
-      setError("Failed to submit rating. Please try again.");
+      setRatingError("Failed to submit rating. Please try again.");
     }
   };
 
-  // Render 5 stars for rating
   const renderStars = () => {
     return [...Array(5)].map((_, index) => {
       const ratingValue = index + 1;
@@ -146,7 +142,6 @@ const CommentRatingSection = () => {
     });
   };
 
-  // Format the date for display
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -161,14 +156,15 @@ const CommentRatingSection = () => {
           {renderStars()}
         </div>
         {!user && <p className="text-yellow-400 mt-2 text-sm">Login to rate this recipe</p>}
+        {ratingError && <p className="text-red-400 mt-1 text-sm">{ratingError}</p>}
       </div>
 
       {/* Comments Section */}
       <div>
         <h3 className="text-white text-lg mb-2">Comments</h3>
-        
-        {error && <p className="text-red-400 mb-2">{error}</p>}
-        
+
+        {commentError && <p className="text-red-400 mb-2">{commentError}</p>}
+
         {user ? (
           <form onSubmit={handleCommentSubmit} className="mb-4">
             <input
@@ -196,7 +192,7 @@ const CommentRatingSection = () => {
         ) : (
           <p className="text-yellow-400 mb-4">Please login to leave a comment</p>
         )}
-        
+
         {isLoading ? (
           <p className="text-gray-400">Loading comments...</p>
         ) : comments.length === 0 ? (
