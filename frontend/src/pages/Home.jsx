@@ -22,22 +22,33 @@ const Home = () => {
     };
 
     fetchRecipes();
-  }, [sortBy]); // Re-fetch when sorting changes
+  }, [sortBy]);
 
   return (
     <div className="p-4 bg-black min-h-screen">
-      {/* Sorting Controls */}
-      <div className="mb-4 flex justify-end gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-400">Sort by:</span>
-          <select 
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-gray-800 text-white p-2 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+      {/* Toggle-style Sorting Controls */}
+      <div className="mb-8 flex justify-center">
+        <div className="inline-flex bg-gray-800 rounded-lg p-1">
+          <button
+            onClick={() => setSortBy("newest")}
+            className={`px-6 py-2 rounded-md transition-all duration-300 ${
+              sortBy === "newest"
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                : "bg-transparent text-gray-400 hover:bg-gray-700"
+            }`}
           >
-            <option value="newest">Newest First</option>
-            <option value="top_rated">Top Rated</option>
-          </select>
+            New
+          </button>
+          <button
+            onClick={() => setSortBy("top_rated")}
+            className={`px-6 py-2 rounded-md transition-all duration-300 ${
+              sortBy === "top_rated"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                : "bg-transparent text-gray-400 hover:bg-gray-700"
+            }`}
+          >
+            Popular
+          </button>
         </div>
       </div>
 
