@@ -1,45 +1,40 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { FaStar } from "react-icons/fa";
+import VoteButton from "./VoteButton";
 
 const RecipeCard = ({ recipe }) => {
-  // Local state for rating; backend data may not include a rating, so default to 0.
-  const [rating, setRating] = useState(recipe.rating || 0);
-  const [hasVoted, setHasVoted] = useState(false);
-
-  const handleRatingClick = () => {
-    if (!hasVoted) {
-      setRating(rating + 1);
-      setHasVoted(true);
-    }
-  };
-
-  // Truncate the steps field to serve as description (we'll adjust the length later if need be)
-  const description =
-    recipe.steps && recipe.steps.length > 100
-      ? recipe.steps.substring(0, 100) + "..."
-      : recipe.steps;
-
   return (
-    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-      <div className="p-4">
-        <h3 className="text-xl font-bold text-white mb-2">{recipe.name}</h3>
-        <p className="text-gray-400">{description}</p>
-        <div className="flex items-center mt-2">
-          <button onClick={handleRatingClick} className="focus:outline-none">
-            <FaStar
-              size={24}
-              className={`mr-1 ${hasVoted ? "text-yellow-400" : "text-gray-400"}`}
-            />
-          </button>
-          <span className="text-white ml-2">{rating}</span>
+    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:transform hover:scale-102 transition-all duration-300">
+      {recipe.main_photo && (
+        <div className="h-48 bg-gray-700 overflow-hidden">
+          <img
+            src={recipe.main_photo}
+            alt={recipe.name}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/fallback-image.jpg';
+            }}
+          />
         </div>
-        <Link
-          to={`/recipe/${recipe.recipe_id}`}
-          className="text-blue-500 mt-2 inline-block"
-        >
-          View Recipe
-        </Link>
+      )}
+      
+      <div className="p-4">
+        <div className="flex">
+          <VoteButton recipeId={recipe.recipe_id} />
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-white mb-2">{recipe.name}</h3>
+            <p className="text-gray-400 text-sm line-clamp-3">
+              {recipe.steps?.replace(/<\/?[^>]+(>|$)/g, "") || "No description available"}
+            </p>
+            <Link
+              to={`/recipe/${recipe.recipe_id}`}
+              className="mt-3 inline-block bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+            >
+              View Recipe
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

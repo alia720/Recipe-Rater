@@ -67,11 +67,12 @@ CREATE TABLE comments (
 );
 
 CREATE TABLE photo (
-                       photo_id  INT AUTO_INCREMENT PRIMARY KEY,
-                       recipe_id INT NOT NULL,
-                       name      VARCHAR(255) NOT NULL,  --  filename or URL
-                       caption   TEXT,
-                       FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id)
+                            photo_id  INT AUTO_INCREMENT PRIMARY KEY,
+                            recipe_id INT NOT NULL,
+                            name      VARCHAR(255) NOT NULL,  -- filename or URL
+                            caption   TEXT,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id)
 );
 -- ====================================== -- 4. Relationship Tables -- ======================================
 
@@ -110,3 +111,35 @@ CREATE TABLE admin_removes_rating (
                                       FOREIGN KEY (admin_id)  REFERENCES admin(user_id),
                                       FOREIGN KEY (rating_id) REFERENCES rating(rating_id)
 );
+
+
+-- ======================================
+-- OPTIMIZATION: Add indexes for performance
+-- ======================================
+
+-- For sorting/filtering recipes
+CREATE INDEX idx_recipes_id ON recipe(recipe_id);
+
+-- For username lookups during authentication
+CREATE INDEX idx_user_username ON user(username);
+
+-- For comment-related queries
+CREATE INDEX idx_comments_recipe ON comments(recipe_id);
+CREATE INDEX idx_comments_user ON comments(user_id);
+
+-- For rating aggregations
+CREATE INDEX idx_ratings_recipe ON rating(recipe_id);
+
+-- For likes/dislikes performance
+CREATE INDEX idx_likes_dislikes_recipe ON likes_dislikes(recipe_id);
+CREATE INDEX idx_likes_dislikes_user ON likes_dislikes(user_id);
+
+-- For ingredient queries
+CREATE INDEX idx_ingredients_recipe ON ingredient(recipe_id);
+
+-- For photo loading
+CREATE INDEX idx_photos_recipe ON photo(recipe_id);
+
+-- For category relationships
+CREATE INDEX idx_belongs_to_recipe ON belongs_to(recipe_id);
+CREATE INDEX idx_belongs_to_category ON belongs_to(category_id);

@@ -55,11 +55,20 @@ export const getPhotoById = async (req, res) => {
 export const getPhotosByRecipe = async (req, res) => {
     const { recipeId } = req.params;
     try {
-        const [rows] = await pool.query('SELECT * FROM photo WHERE recipe_id = ?', [recipeId]);
-        res.json(rows);
+      const [rows] = await pool.query(
+        `SELECT 
+          photo_id,
+          CONCAT('http://localhost:5000/uploads/', name) as url,
+          caption,
+          created_at  -- Now valid after schema update
+         FROM photo 
+         WHERE recipe_id = ?`, 
+        [recipeId]
+      );
+      res.json(rows);
     } catch (error) {
-        console.error('Error fetching photos by recipe:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+      console.error('Error fetching photos by recipe:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 

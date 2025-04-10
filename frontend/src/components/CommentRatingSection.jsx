@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { FaStar } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 
@@ -10,11 +9,8 @@ const CommentRatingSection = () => {
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState("");
   const [commentTitle, setCommentTitle] = useState("");
-  const [rating, setRating] = useState(0);
-  const [userRating, setUserRating] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [commentError, setCommentError] = useState(null);
-  const [ratingError, setRatingError] = useState(null);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -95,53 +91,6 @@ const CommentRatingSection = () => {
     }
   };
 
-  const handleRatingSubmit = async (value) => {
-    if (!user) {
-      setRatingError("You must be logged in to rate this recipe");
-      return;
-    }
-
-    try {
-      const response = await fetch("http://localhost:5000/api/ratings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          recipe_id: recipeId,
-          user_id: user.user_id,
-          rating_value: value
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit rating");
-      }
-
-      setUserRating(value);
-      setRatingError(null);
-    } catch (err) {
-      console.error("Error submitting rating:", err);
-      setRatingError("Failed to submit rating. Please try again.");
-    }
-  };
-
-  const renderStars = () => {
-    return [...Array(5)].map((_, index) => {
-      const ratingValue = index + 1;
-      return (
-        <FaStar
-          key={index}
-          className="cursor-pointer"
-          color={ratingValue <= userRating ? "#ffc107" : "#e4e5e9"}
-          size={24}
-          onClick={() => handleRatingSubmit(ratingValue)}
-        />
-      );
-    });
-  };
-
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -149,16 +98,6 @@ const CommentRatingSection = () => {
 
   return (
     <div className="mt-6 bg-gray-800 p-4 rounded-lg">
-      {/* Rating Section */}
-      <div className="mb-6">
-        <h3 className="text-white text-lg mb-2">Rate this Recipe</h3>
-        <div className="flex items-center">
-          {renderStars()}
-        </div>
-        {!user && <p className="text-yellow-400 mt-2 text-sm">Login to rate this recipe</p>}
-        {ratingError && <p className="text-red-400 mt-1 text-sm">{ratingError}</p>}
-      </div>
-
       {/* Comments Section */}
       <div>
         <h3 className="text-white text-lg mb-2">Comments</h3>

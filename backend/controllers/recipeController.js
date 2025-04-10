@@ -2,18 +2,43 @@
 import pool from '../db.js';
 
 /**
- * Get all recipes (with optional pagination).
+ * Get all recipes (with optional pagination and sorting).
  */
 export const getAllRecipes = async (req, res) => {
     try {
-        // Optional: handle pagination via query parameters (limit & page)
-        const limit = parseInt(req.query.limit) || 10; // default 10
-        const page = parseInt(req.query.page) || 1;    // default page 1
+        const { sort, limit = 100, page = 1 } = req.query;
         const offset = (page - 1) * limit;
 
-        const [rows] = await pool.query('SELECT * FROM recipe LIMIT ? OFFSET ?', [limit, offset]);
+        let query = `
+            SELECT 
+                r.*,
+                (SELECT CONCAT('http://localhost:5000/uploads/', p.name) 
+                 FROM photo p 
+                 WHERE p.recipe_id = r.recipe_id 
+                 LIMIT 1) AS main_photo,
+                COALESCE(SUM(ld.liked = 1), 0) AS likes,
+                COALESCE(SUM(ld.liked = 0), 0) AS dislikes,
+                (COALESCE(SUM(ld.liked = 1), 0) - COALESCE(SUM(ld.liked = 0), 0)) AS net_votes
+            FROM recipe r
+            LEFT JOIN likes_dislikes ld ON r.recipe_id = ld.recipe_id
+        `;
 
-        // You can also get total count to include in your response
+        query += ' GROUP BY r.recipe_id';
+
+        switch(sort) {
+            case 'top_rated':
+                query += ' ORDER BY net_votes DESC';
+                break;
+            case 'newest':
+            default:
+                query += ' ORDER BY r.recipe_id DESC';
+                break;
+        }
+
+        query += ' LIMIT ? OFFSET ?';
+
+        const [rows] = await pool.query(query, [parseInt(limit), parseInt(offset)]);
+
         const [countRows] = await pool.query('SELECT COUNT(*) AS count FROM recipe');
         const totalItems = countRows[0].count;
 
@@ -21,8 +46,9 @@ export const getAllRecipes = async (req, res) => {
             data: rows,
             pagination: {
                 totalItems,
-                currentPage: page,
-                totalPages: Math.ceil(totalItems / limit)
+                currentPage: parseInt(page),
+                totalPages: Math.ceil(totalItems / limit),
+                itemsPerPage: parseInt(limit)
             }
         });
     } catch (error) {
@@ -37,11 +63,23 @@ export const getAllRecipes = async (req, res) => {
 export const getRecipeById = async (req, res) => {
     const { id } = req.params;
     try {
-        const [rows] = await pool.query('SELECT * FROM recipe WHERE recipe_id = ?', [id]);
-        if (rows.length === 0) {
+        const [recipeRows] = await pool.query(
+            `SELECT 
+                r.*,
+                (SELECT CONCAT('http://localhost:5000/uploads/', p.name) 
+                 FROM photo p 
+                 WHERE p.recipe_id = r.recipe_id 
+                 LIMIT 1) AS main_photo
+             FROM recipe r
+             WHERE r.recipe_id = ?`,
+            [id]
+        );
+        
+        if (recipeRows.length === 0) {
             return res.status(404).json({ error: 'Recipe not found' });
         }
-        res.json(rows[0]);
+
+        res.json(recipeRows[0]);
     } catch (error) {
         console.error('Error fetching recipe by ID:', error);
         res.status(500).json({ error: 'Internal Server Error' });

@@ -17,6 +17,7 @@ import categoryRoutes from "./routes/category.js";
 import userRoutes from './routes/user.js';
 import cors from "cors";
 import session from "express-session";
+import uploadRoutes from './routes/upload.js';
 
 
 dotenv.config();
@@ -43,8 +44,9 @@ app.use(
     credentials: true,
   })
 );
-
 app.use('/api/recipes', recipeRoutes);
+app.use('/uploads', express.static('uploads'));
+app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/ratings', ratingRoutes);
