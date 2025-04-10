@@ -58,9 +58,12 @@ export const getPhotosByRecipe = async (req, res) => {
       const [rows] = await pool.query(
         `SELECT 
           photo_id,
-          CONCAT('http://localhost:5000/uploads/', name) as url,
+          CASE 
+            WHEN name LIKE 'http%' THEN name
+            ELSE CONCAT('http://localhost:5000/uploads/', name)
+          END as url,
           caption,
-          created_at  -- Now valid after schema update
+          created_at
          FROM photo 
          WHERE recipe_id = ?`, 
         [recipeId]
@@ -70,7 +73,7 @@ export const getPhotosByRecipe = async (req, res) => {
       console.error('Error fetching photos by recipe:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+  };
 
 /**
  * Search photos by name or caption (partial match).
