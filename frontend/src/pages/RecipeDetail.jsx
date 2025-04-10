@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import CommentRatingSection from "../components/CommentRatingSection";
+import VoteButton from "../components/VoteButton";
 import { useUser } from "../context/UserContext";
 
 const RecipeDetail = () => {
@@ -51,6 +52,7 @@ const RecipeDetail = () => {
   return (
     <div className="min-h-screen bg-black text-white p-6">
       <div className="bg-gray-900 p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+        {/* Image Gallery */}
         {photos.length > 0 && (
           <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {photos.map((photo) => (
@@ -74,13 +76,20 @@ const RecipeDetail = () => {
           </div>
         )}
 
+        {/* Recipe Header with Voting */}
+        <div className="flex items-center mb-8 gap-4">
+          <VoteButton recipeId={recipe.recipe_id} />
+          <h1 className="text-3xl font-bold">{recipe.name}</h1>
+        </div>
+
+        {/* Recipe Details */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
           <pre className="whitespace-pre-wrap font-sans text-gray-300">
             {recipe.steps}
           </pre>
         </div>
 
+        {/* Comment Section */}
         <CommentRatingSection />
       </div>
     </div>
