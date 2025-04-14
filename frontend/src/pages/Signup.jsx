@@ -60,7 +60,7 @@ const Signup = () => {
           Welcome to Recipe Rater!
         </h1>
         <p className="mt-2 text-gray-300 text-lg sm:text-xl font-light">
-          A Reddit-style forum for discovering & rating amazing recipes 🍲✨
+        🍲 A Reddit-style forum for discovering & rating amazing recipes 🍲
         </p>
       </div>
 
