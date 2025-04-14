@@ -1,63 +1,111 @@
 import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import RecipeCard from "../components/RecipeCard";
 
 const Home = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("newest"); // 'newest' or 'top_rated'
+  const [sortBy, setSortBy] = useState("newest");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Read query parameter from URL
+  const searchParams = new URLSearchParams(location.search);
+  const query = searchParams.get("query");
 
   useEffect(() => {
     const fetchRecipes = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/recipes?sort=${sortBy}`
-        );
-        const data = await response.json();
-        setRecipes(data.data);
-        setLoading(false);
+        if (query && query.trim() !== "") {
+          // Use the combined search endpoint if a query is present
+          const response = await fetch(
+            `http://localhost:5000/api/search?query=${encodeURIComponent(query)}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch search results");
+          }
+          const data = await response.json();
+          // Use the merged recipes from your combined search endpoint
+          setRecipes(data.recipes);
+        } else {
+          // Otherwise, fetch all recipes with sorting
+          const response = await fetch(
+            `http://localhost:5000/api/recipes?sort=${sortBy}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch recipes");
+          }
+          const data = await response.json();
+          setRecipes(data.data);
+        }
       } catch (err) {
         console.error("Error fetching recipes:", err);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchRecipes();
-  }, [sortBy]);
+  }, [query, sortBy]);
+
+  // A helper to clear the search by removing the query from the URL
+  const clearSearch = () => {
+    // Replace URL with /home without query parameters
+    navigate("/home");
+  };
 
   return (
     <div className="p-4 bg-black min-h-screen">
-      {/* Toggle-style Sorting Controls */}
-      <div className="mb-8 flex justify-center">
-        <div className="inline-flex bg-gray-800 rounded-lg p-1">
+      {/* Only show sorting controls if not in search mode */}
+      {!query && (
+        <div className="mb-8 flex justify-center">
+          <div className="inline-flex bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setSortBy("newest")}
+              className={`px-6 py-2 rounded-md transition-all duration-300 ${
+                sortBy === "newest"
+                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                  : "bg-transparent text-gray-400 hover:bg-gray-700"
+              }`}
+            >
+              New
+            </button>
+            <button
+              onClick={() => setSortBy("top_rated")}
+              className={`px-6 py-2 rounded-md transition-all duration-300 ${
+                sortBy === "top_rated"
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                  : "bg-transparent text-gray-400 hover:bg-gray-700"
+              }`}
+            >
+              Popular
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* If in search mode, add a Clear Search button */}
+      {query && (
+        <div className="mb-8 flex justify-center">
           <button
-            onClick={() => setSortBy("newest")}
-            className={`px-6 py-2 rounded-md transition-all duration-300 ${
-              sortBy === "newest"
-                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                : "bg-transparent text-gray-400 hover:bg-gray-700"
-            }`}
+            onClick={clearSearch}
+            className="px-6 py-2 rounded-md bg-gray-700 text-white transition-all duration-300"
           >
-            New
-          </button>
-          <button
-            onClick={() => setSortBy("top_rated")}
-            className={`px-6 py-2 rounded-md transition-all duration-300 ${
-              sortBy === "top_rated"
-                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                : "bg-transparent text-gray-400 hover:bg-gray-700"
-            }`}
-          >
-            Popular
+            Clear Search
           </button>
         </div>
-      </div>
+      )}
 
-      {/* Recipe Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {recipes.map((recipe) => (
-          <RecipeCard key={recipe.recipe_id} recipe={recipe} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center text-white">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {recipes.map((recipe) => (
+            <RecipeCard key={recipe.recipe_id} recipe={recipe} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

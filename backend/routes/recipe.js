@@ -14,11 +14,11 @@ const router = Router();
 // GET all recipes (with optional pagination)
 router.get('/', getAllRecipes);
 
+// Search recipes by name (ex: /api/recipes/search?query=chicken)
+router.get('/search', searchRecipes);
+
 // GET single recipe by ID
 router.get('/:id', getRecipeById);
-
-// Search recipes by name (ex: /api/recipes/search?query=chicken)
-router.get('/search/query', searchRecipes);
 
 // CREATE a new recipe
 router.post('/', createRecipe);

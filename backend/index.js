@@ -18,7 +18,7 @@ import userRoutes from './routes/user.js';
 import cors from "cors";
 import session from "express-session";
 import uploadRoutes from './routes/upload.js';
-
+import searchRoutes from './routes/search.js';
 
 dotenv.config();
 
@@ -44,6 +44,7 @@ app.use(
     credentials: true,
   })
 );
+app.use('/api/search', searchRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/upload', uploadRoutes);

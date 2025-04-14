@@ -1,8 +1,7 @@
-// frontend/src/pages/Signup.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
-
+import backgroundImage from "../assets/bgForRecipe.gif";
 
 const Signup = () => {
   const { fetchUser } = useUser();
@@ -36,10 +35,39 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black">
+    <div className="flex flex-col items-center justify-center min-h-screen relative bg-black px-4">
+      {/* Background container with vignette effect */}
+      <div
+        className="absolute inset-0 bg-center bg-cover"
+        style={{
+          backgroundImage: `url(${backgroundImage})`,
+          maskImage: 'radial-gradient(circle at center, black 30%, transparent 90%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 80%)',
+        }}
+      />
+
+      {/* Semi-transparent overlay with gradient */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85))',
+        }}
+      />
+
+      {/* Welcome Text */}
+      <div className="relative z-10 mb-6 text-center">
+        <h1 className="text-4xl sm:text-5xl font-bold text-white drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-r from-lime-400 to-emerald-500 animate-pulse">
+          Welcome to Recipe Rater!
+        </h1>
+        <p className="mt-2 text-gray-300 text-lg sm:text-xl font-light">
+          A Reddit-style forum for discovering & rating amazing recipes 🍲✨
+        </p>
+      </div>
+
+      {/* Form container */}
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-900 p-6 rounded-lg shadow-md w-96"
+        className="relative z-10 bg-gray-900 bg-opacity-80 p-6 rounded-lg shadow-lg w-full max-w-md text-left"
       >
         <h2 className="text-white text-2xl mb-4 text-center">Sign Up</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
