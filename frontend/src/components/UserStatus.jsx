@@ -5,6 +5,7 @@ import { useUser } from "../context/UserContext";
 
 const UserStatus = () => {
   const { user, fetchUser } = useUser();
+  const [showDropdown, setShowDropdown] = React.useState(false);
 
   const handleLogout = async () => {
     await fetch("http://localhost:5000/api/users/logout", {
@@ -17,14 +18,41 @@ const UserStatus = () => {
   if (user) {
     return (
       <div className="text-white">
-        Welcome, <strong>{user.name}</strong>!
+        Welcome,
         <button
-          onClick={handleLogout}
-          className="ml-2 text-sm text-red-500"
+          className="ml-2"
+          id="user-button"
+          onClick={() => setShowDropdown(!showDropdown)}
         >
-          Logout
+          <strong>{user.name}</strong>
         </button>
+        {showDropdown ? (
+          <div className="absolute bg-gray-800 rounded p-4">
+            <Link to="/profile" className="block mb-2 hover:underline">
+              Profile
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="text-red-500 hover:underline"
+            >
+              Logout
+            </button>
+          </div>
+        ) : null}
       </div>
+
+      // <div className="text-white">
+      //   Welcome,
+      //   <Link to="/profile" className="ml-2 text-white hover:underline">
+      //     <strong>{user.name}</strong>!
+      //   </Link>
+      //   <button
+      //     onClick={handleLogout}
+      //     className="ml-2 text-sm text-red-500"
+      //   >
+      //     Logout
+      //   </button>
+      // </div>
     );
   } else {
     return (

@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import RecipeDetail from "./pages/RecipeDetail";
 import AddRecipe from "./pages/AddRecipe";
+import Profile from "./pages/Profile";
 import "./index.css";
 import { UserProvider } from './context/UserContext';
 
@@ -19,6 +20,7 @@ function App() {
         <Routes>
           {/* If not authenticated, show the sign up page by default */}
           <Route path="/" element={!isAuthenticated ? <Signup /> : <Home />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<Home />} />
