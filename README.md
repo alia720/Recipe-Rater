@@ -111,25 +111,6 @@ PORT=5000
 - GET /api/ratings/:recipeId - Get ratings for recipe
 - GET /api/comments/:recipeId - Get comments for recipe
 
-## Project Structure
-
-```
-CPSC471-Recipe-Proj/
-├── frontend/                 # React frontend application
-│   ├── src/
-│   │   ├── components/      # Reusable React components
-│   │   ├── pages/          # Page components
-│   │   ├── services/       # API services
-│   │   └── App.tsx         # Main application component
-│   └── package.json
-├── backend/                 # Node.js backend application
-│   ├── routes/             # API routes
-│   ├── models/             # Database models
-│   ├── config/             # Configuration files
-│   └── index.js            # Server entry point
-└── README.md
-```
-
 
 
 ## License
@@ -138,4 +119,3 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-Special thanks to all contributors, including [Name 1], [Name 2], and [Name 3].
