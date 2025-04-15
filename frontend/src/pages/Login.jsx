@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import loginBackground from "../assets/bgForLogin.gif";
 
@@ -40,15 +41,17 @@ const Login = () => {
         className="absolute inset-0 bg-center bg-cover"
         style={{
           backgroundImage: `url(${loginBackground})`,
-          maskImage: 'radial-gradient(circle at center, black 30%, transparent 90%)',
-          WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 80%)',
+          maskImage:
+            "radial-gradient(circle at center, black 30%, transparent 90%)",
+          WebkitMaskImage:
+            "radial-gradient(circle at center, black 30%, transparent 80%)",
         }}
       />
 
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85))',
+          background: "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85))",
         }}
       />
 
@@ -84,6 +87,9 @@ const Login = () => {
         >
           Login
         </button>
+        <p className="mt-4 text-gray-300 text-center">
+          Don't have an account? Sign up <Link to="/signup" className="text-blue-500 hover:underline">here</Link>!
+        </p>
       </form>
     </div>
   );

@@ -22,37 +22,26 @@ const UserStatus = () => {
         <button
           className="ml-2"
           id="user-button"
-          onClick={() => setShowDropdown(!showDropdown)}
+          onMouseEnter={() => setShowDropdown(true)}
+          onMouseLeave={() => setShowDropdown(false)}
         >
           <strong>{user.name}</strong>
+          {showDropdown ? (
+            <div className="absolute bg-gray-800 rounded-md shadow-lg p-2 right-2">
+              <Link to="/profile" className="block mb-2 hover:underline">
+                Profile
+              </Link>
+              <Link
+                to="/signup"
+                className="block mb-2 hover:underline text-red-500"
+                onClick={handleLogout}
+              >
+                Sign out
+              </Link>
+            </div>
+          ) : null}
         </button>
-        {showDropdown ? (
-          <div className="absolute bg-gray-800 rounded p-4">
-            <Link to="/profile" className="block mb-2 hover:underline">
-              Profile
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="text-red-500 hover:underline"
-            >
-              Logout
-            </button>
-          </div>
-        ) : null}
       </div>
-
-      // <div className="text-white">
-      //   Welcome,
-      //   <Link to="/profile" className="ml-2 text-white hover:underline">
-      //     <strong>{user.name}</strong>!
-      //   </Link>
-      //   <button
-      //     onClick={handleLogout}
-      //     className="ml-2 text-sm text-red-500"
-      //   >
-      //     Logout
-      //   </button>
-      // </div>
     );
   } else {
     return (

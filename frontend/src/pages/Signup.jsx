@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import backgroundImage from "../assets/bgForRecipe.gif";
 
@@ -41,8 +42,10 @@ const Signup = () => {
         className="absolute inset-0 bg-center bg-cover"
         style={{
           backgroundImage: `url(${backgroundImage})`,
-          maskImage: 'radial-gradient(circle at center, black 30%, transparent 90%)',
-          WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 80%)',
+          maskImage:
+            "radial-gradient(circle at center, black 30%, transparent 90%)",
+          WebkitMaskImage:
+            "radial-gradient(circle at center, black 30%, transparent 80%)",
         }}
       />
 
@@ -50,7 +53,7 @@ const Signup = () => {
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85))',
+          background: "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.85))",
         }}
       />
 
@@ -60,7 +63,7 @@ const Signup = () => {
           Welcome to Recipe Rater!
         </h1>
         <p className="mt-2 text-gray-300 text-lg sm:text-xl font-light">
-        🍲 A Reddit-style forum for discovering & rating amazing recipes 🍲
+          🍲 A Reddit-style forum for discovering & rating amazing recipes 🍲
         </p>
       </div>
 
@@ -107,6 +110,13 @@ const Signup = () => {
         >
           Sign Up
         </button>
+        <p className="mt-4 text-gray-300 text-center">
+          Have an account? Sign in{" "}
+          <Link to="/login" className="text-blue-500 hover:underline">
+            here
+          </Link>
+          !
+        </p>
       </form>
     </div>
   );
