@@ -6,6 +6,9 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import RecipeDetail from "./pages/RecipeDetail";
 import AddRecipe from "./pages/AddRecipe";
+import Profile from "./pages/Profile";
+import EditRecipe from "./pages/EditRecipe";
+import DeleteRecipe from "./pages/DeleteRecipe";
 import "./index.css";
 import { UserProvider } from './context/UserContext';
 
@@ -19,11 +22,14 @@ function App() {
         <Routes>
           {/* If not authenticated, show the sign up page by default */}
           <Route path="/" element={!isAuthenticated ? <Signup /> : <Home />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<Home />} />
           <Route path="/recipe/:id" element={<RecipeDetail />} />
           <Route path="/add-recipe" element={<AddRecipe />} />
+          <Route path="/recipe/edit/:recipeId" element={<EditRecipe />} />
+          <Route path="/recipe/delete/:recipeId" element={<DeleteRecipe />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
