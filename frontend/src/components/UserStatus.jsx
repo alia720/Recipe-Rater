@@ -44,15 +44,15 @@ const UserStatus = ({ isMobile = false }) => {
     const handleLogout = async () => {
         setShowDropdown(false); // Close dropdown first
         try {
-            await fetch("http://localhost:5000/api/users/logout", { // Ensure API URL is correct
+            await fetch("http://localhost:5000/api/users/logout", {
                 method: "POST",
                 credentials: "include", // Important for cookie-based sessions
             });
-            await fetchUser(); // Refresh user state from context
+            await fetchUser();
             navigate('/'); // Redirect to home page after logout
         } catch (error) {
             console.error("Logout failed:", error);
-            // Optionally show an error message to the user
+
         }
     };
 
@@ -89,7 +89,6 @@ const UserStatus = ({ isMobile = false }) => {
             : "absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md";   // Position below button (desktop)
 
         return (
-            // Ensure this parent has relative positioning
             <div className={`relative ${isMobile ? '' : 'ml-3'}`}>
                 {/* Dropdown Trigger Button */}
                 <button
