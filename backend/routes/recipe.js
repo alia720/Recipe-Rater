@@ -6,7 +6,8 @@ import {
     searchRecipes,
     createRecipe,
     updateRecipe,
-    deleteRecipe
+    deleteRecipe,
+    getRecipesByUserId
 } from '../controllers/recipeController.js';
 
 const router = Router();
@@ -19,6 +20,8 @@ router.get('/search', searchRecipes);
 
 // GET single recipe by ID
 router.get('/:id', getRecipeById);
+
+router.get('/user/:userId', getRecipesByUserId);
 
 // CREATE a new recipe
 router.post('/', createRecipe);
