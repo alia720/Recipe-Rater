@@ -20,7 +20,9 @@ const Home = () => {
         if (query && query.trim() !== "") {
           // Use the combined search endpoint if a query is present
           const response = await fetch(
-            `http://localhost:5000/api/search?query=${encodeURIComponent(query)}`
+            `http://localhost:5000/api/search?query=${encodeURIComponent(
+              query
+            )}`
           );
           if (!response.ok) {
             throw new Error("Failed to fetch search results");
@@ -90,7 +92,7 @@ const Home = () => {
         <div className="mb-8 flex justify-center">
           <button
             onClick={clearSearch}
-            className="px-6 py-2 rounded-md bg-gray-700 text-white transition-all duration-300"
+            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
           >
             Clear Search
           </button>
@@ -101,9 +103,17 @@ const Home = () => {
         <div className="text-center text-white">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {recipes.map((recipe) => (
-            <RecipeCard key={recipe.recipe_id} recipe={recipe} />
-          ))}
+          {recipes.length > 0 ? (
+            recipes.map((recipe) => (
+              <RecipeCard key={recipe.recipe_id} recipe={recipe} />
+            ))
+          ) : (
+            <div className="text-center text-white col-span-full">
+              No recipes match your search
+              <br />
+              Please try a different search
+            </div>
+          )}
         </div>
       )}
     </div>
