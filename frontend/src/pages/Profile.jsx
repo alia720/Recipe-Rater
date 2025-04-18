@@ -217,6 +217,14 @@ const Profile = () => {
                     className="mb-2 w-full h-32 object-cover rounded"
                   />
                 )}
+                <div>
+                  <pre className="whitespace-pre-wrap font-sans text-gray-300">
+                    Categories:{" "}
+                    {r.categories && r.categories.length > 0
+                      ? r.categories.join(", ")
+                      : "Not specified"}
+                  </pre>
+                </div>
                 <div className="space-y-1 max-h-40 overflow-y-auto pr-2 text-gray-300">
                   {parseSteps(r.steps)}
                 </div>

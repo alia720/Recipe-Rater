@@ -16,9 +16,11 @@ const RecipeDetail = () => {
       try {
         const res = await fetch(`http://localhost:5000/api/recipes/${id}`);
         if (!res.ok) throw new Error("Failed to fetch recipe");
-        
+
         const recipeData = await res.json();
-        const photosRes = await fetch(`http://localhost:5000/api/photos/recipe/${id}`);
+        const photosRes = await fetch(
+          `http://localhost:5000/api/photos/recipe/${id}`
+        );
         const photosData = await photosRes.json();
 
         setRecipe(recipeData);
@@ -63,7 +65,7 @@ const RecipeDetail = () => {
                   className="w-full h-64 object-cover rounded-lg transform group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = '/fallback-image.jpg';
+                    e.target.src = "/fallback-image.jpg";
                   }}
                 />
                 {photo.caption && (
@@ -80,6 +82,16 @@ const RecipeDetail = () => {
         <div className="flex items-center mb-8 gap-4">
           <VoteButton recipeId={recipe.recipe_id} />
           <h1 className="text-3xl font-bold">{recipe.name}</h1>
+        </div>
+
+        {/* Recipe category */}
+        <div className="">
+          <pre className="whitespace-pre-wrap font-sans text-gray-300">
+            Categories:{" "}
+            {recipe.categories && recipe.categories.length > 0
+              ? recipe.categories.join(", ")
+              : "Not specified"}
+          </pre>
         </div>
 
         {/* Recipe Details */}
