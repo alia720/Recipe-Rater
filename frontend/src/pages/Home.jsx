@@ -83,6 +83,26 @@ const Home = () => {
             >
               Popular
             </button>
+            <div>
+              <select
+                onChange={(e) => setSortBy(e.target.value)}
+                className={`ml-4 bg-gray-800 text-white px-4 py-2 rounded-lg ${
+                  sortBy !== "newest" && sortBy !== "top_rated"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                    : "bg-transparent text-gray-400 hover:bg-gray-700"
+                }`}
+              >
+                <option value="">All</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Dessert">Dessert</option>
+                <option value="Snack">Snack</option>
+                <option value="Appetizer">Appetizer</option>
+                <option value="Beverage">Beverage</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
         </div>
       )}
