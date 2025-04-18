@@ -86,7 +86,7 @@ const Home = () => {
             <div>
               <select
                 onChange={(e) => setSortBy(e.target.value)}
-                className={`ml-4 bg-gray-800 text-white px-4 py-2 rounded-lg ${
+                className={`px-6 py-2 rounded-md transition-all duration-300 bg-gray-800 ${
                   sortBy !== "newest" && sortBy !== "top_rated"
                     ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
                     : "bg-transparent text-gray-400 hover:bg-gray-700"
