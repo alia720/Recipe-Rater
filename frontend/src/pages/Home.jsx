@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import RecipeCard from "../components/RecipeCard";
-// Consider adding an icon library like react-icons if you want icons easily
 // import { FiXCircle, FiSearch } from 'react-icons/fi'; // Example if using react-icons
 
-// Simple SVG Spinner Component (or use a library)
+// Simple SVG Spinner Component 
 const LoadingSpinner = () => (
     <svg className="animate-spin h-10 w-10 text-blue-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -12,7 +11,7 @@ const LoadingSpinner = () => (
     </svg>
 );
 
-// Simple SVG for "Not Found" (or use a library)
+// Simple SVG for "Not Found" 
 const NotFoundIcon = () => (
     <svg className="mx-auto h-16 w-16 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 10l4 4m0-4l-4 4"></path>

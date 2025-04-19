@@ -20,7 +20,6 @@ function App() {
       <Router>
         <Navbar />
         <Routes>
-          {/* If not authenticated, show the sign up page by default */}
           <Route path="/" element={!isAuthenticated ? <Signup /> : <Home />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />

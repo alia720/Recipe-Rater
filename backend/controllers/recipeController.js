@@ -11,7 +11,7 @@ export const getAllRecipes = async (req, res) => {
             sort        = "newest",
             limit: l    = 100,
             page: p     = 1,
-            category    // ← may be undefined or '5'
+            category
         } = req.query;
 
         const limit  = parseInt(l, 10);

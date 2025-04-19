@@ -70,7 +70,6 @@ export const createAdmin = async (req, res) => {
     }
 
     try {
-        // Optional: check if user exists
         const [userRows] = await pool.query('SELECT * FROM user WHERE user_id = ?', [user_id]);
         if (!userRows.length) {
             return res.status(400).json({ error: 'User ID does not exist in user table' });

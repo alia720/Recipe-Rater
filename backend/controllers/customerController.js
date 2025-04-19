@@ -72,7 +72,6 @@ export const createCustomer = async (req, res) => {
     }
 
     try {
-        // Optional: check if user exists in the user table
         const [userRows] = await pool.query('SELECT * FROM user WHERE user_id = ?', [user_id]);
         if (!userRows.length) {
             return res.status(400).json({ error: 'User ID does not exist in user table' });

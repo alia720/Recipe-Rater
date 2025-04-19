@@ -24,7 +24,6 @@ const LoadingSpinner = ({ size = 'h-8 w-8' }) => (
 const RecipeContextMenu = ({ recipeId, onClose, isVisible }) => {
   const menuRef = useRef(null);
 
-  // Effect to handle clicks outside the menu to close it
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Check if the click target exists and is outside the menu element
@@ -60,7 +59,7 @@ const RecipeContextMenu = ({ recipeId, onClose, isVisible }) => {
       <div
           ref={menuRef}
           // Positioning: Absolute relative to parent card.
-          // `top-8 right-3 mt-1` aims to place it below the ellipsis button (adjust as needed).
+          // `top-8 right-3 mt-1` aims to place it below the ellipsis button
           // `z-20` ensures it's above other card content.
           className={`absolute top-8 right-3 mt-1 z-20 bg-gray-800 text-white rounded-lg shadow-xl py-2 w-36 border border-gray-700 transform transition-all duration-150 ease-out ${animationClasses} origin-top-right`}
           // Prevent browser context menu on right-click
@@ -170,7 +169,6 @@ const Profile = () => {
     setErrorComments("");
     setUserComments([]); // Clear existing comments
     try {
-      // Adjust API endpoint if filtering server-side is possible
       const res = await fetch(`http://localhost:5000/api/comments`, { signal });
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));

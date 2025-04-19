@@ -147,10 +147,6 @@ export const createComment = async (req, res) => {
 
 /**
  * Update an existing comment.
- */
-
-/**
- * Update an existing comment.
  * INSECURE VERSION: Reads user ID from request body. DO NOT USE IN PRODUCTION.
  */
 export const updateComment = async (req, res) => {

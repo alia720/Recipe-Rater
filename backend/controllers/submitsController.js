@@ -105,7 +105,7 @@ export const createSubmits = async (req, res) => {
 };
 
 /**
- * (Optional) Update the submission date or other fields if needed.
+ * Update the submission date or other fields if needed.
  */
 export const updateSubmits = async (req, res) => {
     const { userId, recipeId } = req.params;

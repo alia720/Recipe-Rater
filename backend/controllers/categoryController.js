@@ -6,7 +6,6 @@ import pool from '../db.js';
  */
 export const getAllCategories = async (req, res) => {
     try {
-        // Optional pagination
         const limit = parseInt(req.query.limit) || 10;
         const page = parseInt(req.query.page) || 1;
         const offset = (page - 1) * limit;

@@ -4,9 +4,7 @@ import PhotoManager from "../components/PhotoManager.jsx";
 import { useUser } from "../context/UserContext";
 
 // --- Helper Function to Parse Combined Steps ---
-// (Keep this function as is)
 const parseCombinedSteps = (combinedSteps = "") => {
-  // ... (parsing logic remains the same)
   const descMarker = "Description:";
   const ingMarker = "\nIngredients:\n";
   const instMarker = "\nInstructions:\n";
@@ -63,9 +61,7 @@ const parseCombinedSteps = (combinedSteps = "") => {
           .trim();
     } else if (ingStart !== -1) {
       // Handle case where Instructions might be missing but Ingredients present
-      // The previous logic already captured ingredients correctly in this case.
     } else if (descStart !== -1) {
-      // Only description was found
     } else {
       // Fallback if parsing logic didn't catch edge cases well
       console.warn("Could not fully parse steps, check format:", combinedSteps);
@@ -88,9 +84,7 @@ const parseCombinedSteps = (combinedSteps = "") => {
 };
 
 // --- Helper Function to Combine Steps ---
-// (Keep this function as is)
 const combineSteps = (description, ingredients, instructions) => {
-  // Recreate the expected combined format
   return `Description: ${description.trim()}\nIngredients:\n${ingredients.trim()}\nInstructions:\n${instructions.trim()}`;
 };
 
