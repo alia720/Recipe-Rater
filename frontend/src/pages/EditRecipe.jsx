@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react"; // Added useCallback
 import { useParams, useNavigate, Link } from "react-router-dom";
-import PhotoManager from "../components/PhotoManager.jsx";
-import { useUser } from "../context/UserContext";
-
-const user = useUser();
 
 // --- Helper Function to Parse Combined Steps ---
 // NOTE: This parser assumes a specific format based on the AddRecipe logic.
@@ -101,8 +97,7 @@ const EditRecipe = () => {
 
   // --- State for separate fields ---
   const [name, setName] = useState("");
-  const [availableCats,setAvailableCats] = useState([]);
-  const [selectedCats,setSelectedCats] = useState([]);
+  const [categories, setCategories] = useState([""]);
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -132,21 +127,6 @@ const EditRecipe = () => {
         
         // set categories here
 
-        /* fetch all categories */
-        if (availableCats.length === 0) {
-          const catRes = await fetch(`http://localhost:5000/api/categories`);
-          const catData = await catRes.json();
-          setAvailableCats(catData.data ?? []);
-
-        }
-        /* ----- fetch links (belongs_to) to pre‑select ----- */
-        const belongsToRes = await fetch(
-            `http://localhost:5000/api/belongs-to/recipe/${recipeId}`
-        );
-        const belongsToRows = await belongsToRes.json();
-        setSelectedCats(belongsToRows.map(r => r.category_id));
-
-
         // --- Parse the combined steps string ---
         const {
           description: parsedDesc,
@@ -175,8 +155,8 @@ const EditRecipe = () => {
     setError("");
 
     // Basic validation
-    if (!name.trim() || !ingredients.trim() || !instructions.trim() || selectedCats.length === 0)  {
-      setError("Name, Ingredients, and Instructions cannot be empty and must have at least one category selected.");
+    if (!name.trim() || !ingredients.trim() || !instructions.trim()) {
+      setError("Name, Ingredients, and Instructions cannot be empty.");
       setLoading(false);
       return;
     }
@@ -209,38 +189,7 @@ const EditRecipe = () => {
       }
 
       alert("Recipe updated successfully!");
-      /* sync category */
-      /*  get current links from server (after update) */
-      const curRes = await fetch(`http://localhost:5000/api/belongs-to/recipe/${recipeId}`);
-      const curRows = await curRes.json();
-      const currentIds = curRows.map(r => r.category_id);
-
-      /* Compute addition and deletions*/
-      const toAdd = selectedCats.filter(id => !currentIds.includes(id));
-      const toDelete = currentIds.filter(id => !selectedCats.includes(id));
-
-      /* Perform add*/
-      await Promise.all(
-          toAdd.map(id => fetch("http://localhost:5000/api/belongs-to",{
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              recipe_id: recipeId,
-              category_id: id,
-            })
-          })
-          )
-      );
-
-      /* Perform delete*/
-      await Promise.all(
-          toDelete.map(id => fetch(`http://localhost:5000/api/belongs-to/${id}/${recipeId}`,{
-            method: "DELETE",
-          })
-          )
-      );
-      if (user.role === "admin") navigate("/home");
-      else      navigate(`/profile`);
+      navigate(`/profile`);
     } catch (err) {
       console.error("Update error:", err);
       setError(err.message || "Update failed. Please try again.");
@@ -290,36 +239,44 @@ const EditRecipe = () => {
         )}
 
         <div>
-          {/* Category multi‑select */}
-          <div>
-            <label className="block text-gray-300 mb-2 font-medium">
-              Categories
-            </label>
-            {availableCats.length === 0 ? (
-                <p className="text-sm text-gray-400 italic"> Loading categories</p>
-                ):(
-            <select
-                multiple
-                value={selectedCats}
-                onChange={(e) =>
-                    setSelectedCats(
-                        Array.from(e.target.selectedOptions, opt => Number(opt.value))
-                    )
-                }
-                className="w-full h-40 p-2 rounded bg-gray-800 text-white border
-               border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              {availableCats.map(cat => (
-                  <option key={cat.category_id} value={cat.category_id}>
-                    {cat.name}
-                  </option>
-              ))}
-            </select>)}
-            <p className="text-xs text-gray-500 mt-1">
-              Hold Ctrl/Cmd to select multiple
-            </p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-gray-300 mb-2">Category</label>
+              <div className="space-y-2">
+                {categories.map((category, index) => (
+                  <select
+                    key={index}
+                    value={category}
+                    onChange={(e) => {
+                      const newCategories = [...categories];
+                      newCategories[index] = e.target.value;
+                      setCategories(newCategories);
+                    }}
+                    className="w-full p-2 rounded bg-gray-800 text-white focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a category</option>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Dessert">Dessert</option>
+                    <option value="Snack">Snack</option>
+                    <option value="Appetizer">Appetizer</option>
+                    <option value="Beverage">Beverage</option>
+                    <option value="Other">Other</option>
+                  </select>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCategories([...categories, ""])}
+                  className="text-blue-500 hover:text-blue-400 text-sm"
+                >
+                  Add Category
+                </button>
+              </div>
+            </div>
           </div>
-
 
           {/* --- Name Input (remains the same) --- */}
           <div>
@@ -396,10 +353,6 @@ const EditRecipe = () => {
             </button>
           </div>
         </div>
-        {/* ------------- PHOTO SECTION ------------- */}
-        <h3 className="text-xl font-semibold mt-8 mb-4">Photos</h3>
-        <PhotoManager recipeId={recipeId} />
-
       </form>
     </div>
   );

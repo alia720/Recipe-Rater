@@ -35,7 +35,17 @@ const RecipeCard = ({ recipe }) => {
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete recipe "${recipe.name}"?`)) return;
-    navigate(`/recipe/delete/${recipe.recipe_id}`);
+    try {
+      const res = await fetch(`http://localhost:5000/api/recipes/${recipe.recipe_id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error();
+      // After delete, reload or navigate
+      navigate('/home');
+    } catch {
+      alert('Failed to delete recipe');
+    }
   };
 
   return (

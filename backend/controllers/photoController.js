@@ -9,8 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const upLoadDir = path.join(__dirname, '..','uploads');
-const UPLOAD_DIR   = path.resolve('uploads');
-const URL_PATTERN  = /^https?:\/\//i;                 // crude http/https check
+
 if(!fs.existsSync(upLoadDir)){
     fs.mkdirSync(upLoadDir, {recursive: true});
     console.log("Created uploads directory", upLoadDir);
@@ -220,88 +219,48 @@ export const addPhotoFromUrl = async (req, res) => {
 };
 
 
-/* ---------- UPDATE PHOTO ---------- */
+/**
+ * Update a photo record by ID.
+ */
 export const updatePhoto = async (req, res) => {
-    const { id }             = req.params;
-    const { name, caption }  = req.body;
-
-    if (name === undefined && caption === undefined) {
-        return res
-            .status(400)
-            .json({ error: 'Provide at least one of "name" or "caption" to update.' });
-    }
+    const { id } = req.params;
+    const { name, caption } = req.body;
 
     try {
-        const [[existing]] = await pool.query(
-            'SELECT * FROM photo WHERE photo_id = ?',
-            [id]
-        );
-        if (!existing) {
+        const [existing] = await pool.query('SELECT * FROM photo WHERE photo_id = ?', [id]);
+        if (!existing.length) {
             return res.status(404).json({ error: 'Photo not found' });
         }
 
-        /* decide final values */
-        let finalName     = existing.name;
-        let finalCaption  = existing.caption;
+        const updatedName = name ?? existing[0].name;
+        const updatedCaption = caption ?? existing[0].caption;
 
-        if (name !== undefined) {
-            // keep URL as‑is, otherwise assume it's a local filename
-            finalName = URL_PATTERN.test(name) ? name : name.replace(/^\/+/, '');
-        }
-        if (caption !== undefined) {
-            finalCaption = caption;
-        }
-
-        const [result] = await pool.query(
+        await pool.query(
             'UPDATE photo SET name = ?, caption = ? WHERE photo_id = ?',
-            [finalName, finalCaption, id]
+            [updatedName, updatedCaption, id]
         );
-
-        if (result.affectedRows === 0) {
-            return res.status(500).json({ error: 'Update failed – unexpected DB result.' });
-        }
         res.json({ message: 'Photo updated successfully' });
-
-    } catch (err) {
-        console.error('Error updating photo:', err);
+    } catch (error) {
+        console.error('Error updating photo:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-/* ---------- DELETE PHOTO ---------- */
+/**
+ * Delete a photo by ID.
+ */
 export const deletePhoto = async (req, res) => {
     const { id } = req.params;
-
     try {
-        const [[photo]] = await pool.query(
-            'SELECT * FROM photo WHERE photo_id = ?',
-            [id]
-        );
-        if (!photo) {
+        const [existing] = await pool.query('SELECT * FROM photo WHERE photo_id = ?', [id]);
+        if (!existing.length) {
             return res.status(404).json({ error: 'Photo not found' });
         }
 
-        // remove DB row first (so we don’t leave dangling foreign keys)
-        const [result] = await pool.query(
-            'DELETE FROM photo WHERE photo_id = ?',
-            [id]
-        );
-        if (result.affectedRows === 0) {
-            return res.status(500).json({ error: 'Delete failed – unexpected DB result.' });
-        }
-
-        /* delete file from disk *only* if it lives under /uploads */
-        if (!URL_PATTERN.test(photo.name)) {
-            const filePath = path.join(UPLOAD_DIR, photo.name);
-            // ignore ENOENT in case the file is already gone
-            fs.unlink(filePath, (err) =>
-                err && err.code !== 'ENOENT' ? console.error(err) : null);
-        }
-
+        await pool.query('DELETE FROM photo WHERE photo_id = ?', [id]);
         res.json({ message: 'Photo deleted successfully' });
-
-    } catch (err) {
-        console.error('Error deleting photo:', err);
+    } catch (error) {
+        console.error('Error deleting photo:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };

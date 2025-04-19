@@ -3,133 +3,138 @@ import { useLocation, useNavigate } from "react-router-dom";
 import RecipeCard from "../components/RecipeCard";
 
 const Home = () => {
-  /* ---------- state ---------- */
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("newest");
-
-  const [availableCats, setAvailableCats] = useState([]);   // [{id,name}, …]
-  const [selectedCat,  setSelectedCat]  = useState("");     // category_id or ""
-
   const location = useLocation();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
-  /* ---------- grab ?query= from URL ---------- */
+  // Read query parameter from URL
   const searchParams = new URLSearchParams(location.search);
   const query = searchParams.get("query");
 
-  /* ---------- fetch categories once ---------- */
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
-        .then(r => r.json())
-        .then(data => setAvailableCats(data.data ?? []))
-        .catch(err => {
-          console.error("Failed to fetch categories:", err);
-          setAvailableCats([]);   // don’t crash UI
-        });
-  }, []);
-
-  /* ---------- fetch recipes whenever filters change ---------- */
-  useEffect(() => {
-    (async () => {
+    const fetchRecipes = async () => {
       setLoading(true);
       try {
-        let url;
-        if (query && query.trim()) {
-          url = `http://localhost:5000/api/search?query=${encodeURIComponent(
-              query
-          )}`;
+        if (query && query.trim() !== "") {
+          // Use the combined search endpoint if a query is present
+          const response = await fetch(
+            `http://localhost:5000/api/search?query=${encodeURIComponent(query)}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch search results");
+          }
+          const data = await response.json();
+          // Use the merged recipes from your combined search endpoint
+          setRecipes(data.recipes);
         } else {
-          const params = new URLSearchParams({ sort: sortBy });
-          if (selectedCat) params.append("category", selectedCat);
-          url = `http://localhost:5000/api/recipes?${params.toString()}`;
+          // Otherwise, fetch all recipes with sorting
+          const response = await fetch(
+            `http://localhost:5000/api/recipes?sort=${sortBy}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch recipes");
+          }
+          const data = await response.json();
+          setRecipes(data.data);
         }
-
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Fetch failed");
-        const data = await res.json();
-        setRecipes(query ? data.recipes : data.data);
       } catch (err) {
         console.error("Error fetching recipes:", err);
-        setRecipes([]);
       } finally {
         setLoading(false);
       }
-    })();
-  }, [query, sortBy, selectedCat]);
+    };
 
-  /* ---------- clear search helper ---------- */
-  const clearSearch = () => navigate("/home");
+    fetchRecipes();
+  }, [query, sortBy]);
 
-  /* ---------- UI ---------- */
+  // A helper to clear the search by removing the query from the URL
+  const clearSearch = () => {
+    // Replace URL with /home without query parameters
+    navigate("/home");
+  };
+
   return (
-      <div className="p-4 bg-black min-h-screen">
-        {/* --- Filters row (only when not searching) --- */}
-        {!query && (
-            <div className="mb-8 flex flex-col sm:flex-row justify-center gap-4">
-              {/* sort buttons */}
-              <div className="inline-flex bg-gray-800 rounded-lg p-1">
-                {["newest", "top_rated"].map(opt => (
-                    <button
-                        key={opt}
-                        onClick={() => setSortBy(opt)}
-                        className={`px-6 py-2 rounded-md transition-all duration-300 ${
-                            sortBy === opt
-                                ? opt === "newest"
-                                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
-                                    : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                                : "bg-transparent text-gray-400 hover:bg-gray-700"
-                        }`}
-                    >
-                      {opt === "newest" ? "New" : "Popular"}
-                    </button>
-                ))}
-              </div>
-
-              {/* category dropdown */}
+    <div className="p-4 bg-black min-h-screen">
+      {/* Only show sorting controls if not in search mode */}
+      {!query && (
+        <div className="mb-8 flex justify-center">
+          <div className="inline-flex bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setSortBy("newest")}
+              className={`px-6 py-2 rounded-md transition-all duration-300 ${
+                sortBy === "newest"
+                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                  : "bg-transparent text-gray-400 hover:bg-gray-700"
+              }`}
+            >
+              New
+            </button>
+            <button
+              onClick={() => setSortBy("top_rated")}
+              className={`px-6 py-2 rounded-md transition-all duration-300 ${
+                sortBy === "top_rated"
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                  : "bg-transparent text-gray-400 hover:bg-gray-700"
+              }`}
+            >
+              Popular
+            </button>
+            <div>
               <select
-                  value={selectedCat}
-                  onChange={e => setSelectedCat(e.target.value)}
-                  className="px-6 py-2 rounded-md bg-gray-800 text-gray-200
-                       hover:bg-gray-700 transition-all duration-300"
+                onChange={(e) => setSortBy(e.target.value)}
+                className={`px-6 py-2 rounded-md transition-all duration-300 bg-gray-800 ${
+                  sortBy !== "newest" && sortBy !== "top_rated"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                    : "bg-transparent text-gray-400 hover:bg-gray-700"
+                }`}
               >
-                <option value="">All categories</option>
-                {availableCats.map(c => (
-                    <option key={c.category_id} value={c.category_id}>
-                      {c.name}
-                    </option>
-                ))}
+                <option value="">All</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Dessert">Dessert</option>
+                <option value="Snack">Snack</option>
+                <option value="Appetizer">Appetizer</option>
+                <option value="Beverage">Beverage</option>
+                <option value="Other">Other</option>
               </select>
             </div>
-        )}
+          </div>
+        </div>
+      )}
 
-        {/* clear‑search button */}
-        {query && (
-            <div className="mb-8 flex justify-center">
-              <button
-                  onClick={clearSearch}
-                  className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
-              >
-                Clear Search
-              </button>
-            </div>
-        )}
+      {/* If in search mode, add a Clear Search button */}
+      {query && (
+        <div className="mb-8 flex justify-center">
+          <button
+            onClick={clearSearch}
+            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
 
-        {/* recipes grid */}
-        {loading ? (
-            <div className="text-center text-white">Loading...</div>
-        ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {recipes.length ? (
-                  recipes.map(r => <RecipeCard key={r.recipe_id} recipe={r} />)
-              ) : (
-                  <div className="col-span-full text-center text-white">
-                    No recipes found.
-                  </div>
-              )}
+      {loading ? (
+        <div className="text-center text-white">Loading...</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {recipes.length > 0 ? (
+            recipes.map((recipe) => (
+              <RecipeCard key={recipe.recipe_id} recipe={recipe} />
+            ))
+          ) : (
+            <div className="text-center text-white col-span-full">
+              No recipes match your search
+              <br />
+              Please try a different search
             </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

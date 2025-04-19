@@ -1,295 +1,295 @@
-import React, { useState, useEffect } from "react"; // Removed useRef as it wasn't used
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+// Removed unused import: import { uploadImage } from "../utils/imageUpload";
 
 const AddRecipe = () => {
   const { user } = useUser();
   const navigate = useNavigate();
-
-  // --- State for Form Fields ---
+  const [categories, setCategories] = useState([""]); // Keep if using categories
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
   const [imageUrls, setImageUrls] = useState([""]); // For external URLs
   const [files, setFiles] = useState([]); // For file uploads
-
-  // --- State for Categories ---
-  const [availableCategories, setAvailableCategories] = useState([]);
-  const [selectedCatIds,   setSelectedCatIds]   = useState([]);
-  const [categoryLoading, setCategoryLoading] = useState(false);
-  const [categoryError, setCategoryError] = useState("");
-
-  // --- State for Submission Process ---
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // --- Removed unused sortBy state ---
-  // const [sortBy, setSortBy] = useState("newest");
 
-  // --- Fetch Available Categories on Mount ---
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setCategoryLoading(true);
-      setCategoryError('');
-      try {
-        const res = await fetch("http://localhost:5000/api/categories"); // Fetch categories
-        if (!res.ok) {
-          // Try to get more specific error
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.error || `Failed to fetch categories: ${res.statusText}`);
-        }
-        const data = await res.json();
-        // --- CORRECTED: Access data.data based on your backend controller ---
-        setAvailableCategories(data.data || []); // Use data.data which contains the array
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-        setCategoryError("Failed to load categories. Please ensure the backend is running and categories exist.");
-      } finally {
-        setCategoryLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []); // Empty dependency array - runs once on mount
+  // Removed unused handleFileUpload function
 
+  // This function updates the state when files are selected
   const handleFileChange = (e) => {
     setFiles([...e.target.files]);
+    // Optional: Clear the input visually after selection if desired,
+    // but it might prevent selecting the same file again if the user changes their mind.
+    // e.target.value = null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setCategoryError('');
-    setLoading(true);
+    setError(""); // Clear previous errors at the start
+    setLoading(true); // Set loading true for the entire operation
 
-    // --- Validation ---
     if (!user) {
-      setError("You must be logged in to submit a recipe"); setLoading(false); return;
+      setError("You must be logged in to submit a recipe");
+      setLoading(false); // Stop loading if user check fails
+      return;
     }
-    if (!selectedCatIds) { // Check if a category was selected
-      setError("Please select a category for the recipe."); setLoading(false); return;
-    }
-    if (!title.trim() || !ingredients.trim() || !instructions.trim()) {
-      setError("Title, Ingredients, and Instructions are required."); setLoading(false); return;
-    }
-    // --- End Validation ---
 
-    let createdRecipeId = null;
+    let createdRecipeId = null; // Variable to hold the ID after successful creation
 
     try {
-      // --- Step 1: Create Recipe ---
-      const recipePayload = { user_id: user.user_id, name: title, steps: `Description: ${description}\nIngredients:\n${ingredients}\nInstructions:\n${instructions}` };
-      console.log("Creating recipe:", recipePayload);
-      const recipeRes = await fetch("http://localhost:5000/api/recipes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(recipePayload) });
-      if (!recipeRes.ok) {
-        const errorData = await recipeRes.json().catch(() => ({ error: 'Failed to parse recipe error' }));
-        throw new Error(errorData.error || `Recipe creation failed: ${recipeRes.statusText}`);
-      }
-      const recipeData = await recipeRes.json();
-      if (!recipeData || !recipeData.recipeId) throw new Error("Valid recipeId not returned.");
-      createdRecipeId = recipeData.recipeId;
-      console.log("Recipe created with ID:", createdRecipeId);
+      // --- Step 1: Create the Recipe ---
+      const recipePayload = {
+        user_id: user.user_id,
+        name: title,
+        steps: `Description: ${description}\nIngredients:\n${ingredients}\nInstructions:\n${instructions}`,
+        // Add categories if your backend handles them:
+        // categories: categories.filter(cat => cat.trim() !== ""),
+      };
 
-      // --- Step 2: Link Category ---
-      // console.log(`Linking category ID: ${selectedCategoryId} to recipe ID: ${createdRecipeId}`);
-      // const linkPayload = { category_id: parseInt(selectedCategoryId, 10), recipe_id: createdRecipeId };
-      // // --- Ensure this endpoint matches your backend routes ---
-      // const linkRes = await fetch("http://localhost:5000/api/belongs_to", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(linkPayload) });
-      // if (!linkRes.ok) {
-      //   const linkErrorData = await linkRes.json().catch(() => ({ error: 'Failed to parse linking error' }));
-      //   console.error("Failed to link category:", linkErrorData.error || linkRes.statusText);
-      //   // Adding as a non-critical warning for now
-      //   setError(prev => (prev ? prev + '; ' : '') + `Warning: Failed to link category: ${linkErrorData.error || linkRes.statusText}`);
-      // } else {
-      //   console.log("Category linked successfully.");
-      // }
-
-      const linkPromises = selectedCatIds.map(catId => {
-        fetch("http://localhost:5000/api/belongs-to", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ category_id: catId, recipe_id: createdRecipeId })
-        }).then(async res => {
-          if (!res.ok) {
-            const errData = await res.json().catch(() => null);
-            throw new Error(errData?.error || `Linking category ${catId} failed: ${res.statusText}`);
-          }
-        })
+      console.log("Attempting to create recipe with payload:", recipePayload);
+      const recipeRes = await fetch("http://localhost:5000/api/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(recipePayload)
       });
 
-      try {
-        await Promise.all(linkPromises);
-        console.log("All categories linked successfully.");
-      }catch (linkErr) {
-        console.error("Failed to link categories:", linkErr);
-        setError(prev => (prev ? prev + '; ' : '') + `Warning: Failed to link categories: ${linkErr.message}`);
+      if (!recipeRes.ok) {
+        // Try to get specific error message from backend
+        const errorData = await recipeRes.json().catch(() => ({ error: 'Failed to parse error response' }));
+        // Throw an error to be caught by the main catch block below
+        throw new Error(errorData.error || `Recipe creation failed with status ${recipeRes.status}`);
       }
 
-      // --- Step 3: Process Photos ---
+      const recipeData = await recipeRes.json();
+      console.log("Recipe creation response:", recipeData);
+
+      // Validate backend response and get the ID
+      if (!recipeData || !recipeData.recipeId) {
+        console.error("Backend response issue for recipe creation:", recipeData);
+        throw new Error("Recipe created, but a valid recipeId was not returned from the server.");
+      }
+      createdRecipeId = recipeData.recipeId; // Store the ID for use in photo uploads
+      console.log("Recipe created successfully with ID:", createdRecipeId);
+
+      // --- Step 2: Prepare Photo Upload/Add Promises (only if recipe creation succeeded) ---
       const photoPromises = [];
-      // File Uploads
+
+      // a) File Uploads
       files.forEach(file => {
         const formData = new FormData();
-        formData.append('photoFile', file);
-        formData.append('recipe_id', createdRecipeId);
-        // Ensure this photo upload endpoint is correct
-        const uploadPromise = fetch('http://localhost:5000/api/photos', { method: 'POST', body: formData })
-            .then(async res => { if (!res.ok) { const errData = await res.json().catch(() => null); throw new Error(errData?.error || `Upload failed for ${file.name}: ${res.statusText}`); } return res.json(); });
+        formData.append('photoFile', file); // Key for the actual file ('photoFile' must match backend multer field)
+        formData.append('recipe_id', createdRecipeId); // **CORRECTED KEY** for the recipe ID (must match backend expectation in req.body)
+        // You can add other fields like caption if your backend expects them:
+        // formData.append('caption', 'Optional caption for ' + file.name);
+
+        console.log(`Preparing upload for file: ${file.name} with recipe_id: ${createdRecipeId}`);
+        const uploadPromise = fetch('http://localhost:5000/api/photos', {
+          method: 'POST',
+          body: formData,
+          // ** IMPORTANT: Do NOT manually set Content-Type header for FormData **
+          // The browser sets it correctly, including the boundary.
+        }).then(async res => { // Make inner function async to await res.json()
+          if (!res.ok) {
+            // Try to get detailed error message from backend JSON response
+            const errData = await res.json().catch(() => null); // Catch errors if response isn't JSON
+            console.error(`Upload failed for ${file.name}. Status: ${res.status}`, errData);
+            throw new Error(`Upload failed for ${file.name}: ${errData?.error || res.statusText}`);
+          }
+          console.log(`Upload success for ${file.name}`);
+          return res.json(); // Parse success response
+        });
         photoPromises.push(uploadPromise);
       });
-      // External URLs
+
+      // b) External URL Adds
       imageUrls.forEach(url => {
         const trimmedUrl = url.trim();
-        if (trimmedUrl && trimmedUrl.startsWith('http')) {
-          // Ensure this photo URL endpoint is correct
-          const urlPromise = fetch('http://localhost:5000/api/photos/url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_id: createdRecipeId, name: trimmedUrl, caption: '' })})
-              .then(async res => { if (!res.ok) { const errData = await res.json().catch(() => null); throw new Error(errData?.error || `Adding URL ${trimmedUrl} failed: ${res.statusText}`); } return res.json(); });
+        if (trimmedUrl && trimmedUrl.startsWith('http')) { // Basic check if it looks like a URL
+          console.log(`Preparing to add URL: ${trimmedUrl} with recipe_id: ${createdRecipeId}`);
+          const urlPromise = fetch('http://localhost:5000/api/photos/url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipe_id: createdRecipeId, // Use the stored ID
+              name: trimmedUrl,            // Send the URL as 'name'
+              caption: ''                 // Add caption if applicable
+            })
+          }).then(async res => { // Make inner function async
+            if (!res.ok) {
+              const errData = await res.json().catch(() => null);
+              console.error(`Adding URL ${trimmedUrl} failed. Status: ${res.status}`, errData);
+              throw new Error(`Adding URL ${trimmedUrl} failed: ${errData?.error || res.statusText}`);
+            }
+            console.log(`Adding URL ${trimmedUrl} success.`);
+            return res.json();
+          });
           photoPromises.push(urlPromise);
+        } else if (trimmedUrl) {
+          console.warn(`Skipping invalid URL format: ${trimmedUrl}`);
         }
       });
 
+      // --- Step 3: Execute All Photo Promises ---
       if (photoPromises.length > 0) {
-        console.log(`Processing ${photoPromises.length} photos...`);
-        const results = await Promise.allSettled(photoPromises);
-        results.forEach((result, index) => { if (result.status === 'rejected') { console.error(`Photo operation ${index + 1} failed:`, result.reason); setError(prev => (prev ? prev + '; ' : '') + `Photo processing failed: ${result.reason?.message || 'Unknown photo error'}`); } });
-        if (results.some(r => r.status === 'rejected')) console.warn("Some photo operations failed.");
-        else console.log("All photo operations successful:", results);
+        console.log(`Attempting to process ${photoPromises.length} photos (uploads/URL additions)...`);
+        const results = await Promise.all(photoPromises);
+        console.log("Photo processing results:", results);
       } else {
-        console.log("No photos to process.");
+        console.log("No photos were selected for upload or adding.");
       }
 
-      // --- Step 4: Navigate if no critical errors ---
-      if (!error.includes("Recipe creation failed") && !error.includes("valid recipeId not returned")) {
-        console.log("Submission process complete. Navigating...");
-        navigate(`/recipe/${createdRecipeId}`);
-      } else {
-        console.log("Submission finished with warnings/errors, staying on page.");
-      }
+
+      // --- Step 4: Navigate on Full Success ---
+      console.log("Submission successful! Navigating to recipe page:", createdRecipeId);
+      navigate(`/recipe/${createdRecipeId}`);
 
     } catch (err) {
-      console.error("Error during submission process:", err);
-      setError(`Submission failed: ${err.message}. Check console.`);
-      if (createdRecipeId) setError(prev => `${prev} (Recipe ID ${createdRecipeId} might have been created partially).`);
+      // Catch errors from recipe creation OR photo processing
+      console.error("Error during handleSubmit:", err);
+      // Set a user-friendly error message based on the error caught
+      setError(`Submission failed: ${err.message}. Please check console for details.`);
+      // Optional: Provide more context if recipe was created but photos failed
+      if (createdRecipeId && !err.message.includes("Recipe creation failed")) {
+        setError(prevError => `${prevError} (Recipe was created with ID: ${createdRecipeId}, but photo processing encountered an issue.)`);
+      }
+
     } finally {
-      setLoading(false);
+      // --- Step 5: Final Cleanup ---
+      // This runs regardless of success or failure after the try/catch block completes
+      setLoading(false); // Set loading to false *once* at the very end
     }
   };
 
+  // Remove the large commented-out block of old code here
 
   return (
-      <div className="flex items-center justify-center min-h-screen bg-black py-12 px-4">
+      <div className="flex items-center justify-center min-h-screen bg-black py-12"> {/* Added padding */}
         <form
             onSubmit={handleSubmit}
-            className="bg-gray-900 p-6 md:p-8 rounded-lg shadow-lg w-full max-w-2xl border border-gray-800"
+            className="bg-gray-900 p-6 rounded-lg shadow-md w-full max-w-2xl"
+            // encType="multipart/form-data" // Not strictly needed for fetch with FormData, but doesn't hurt
         >
-          <h2 className="text-2xl md:text-3xl text-white mb-6 text-center font-semibold">Add New Recipe</h2>
+          <h2 className="text-2xl text-white mb-6 text-center">Add New Recipe</h2>
 
-          {/* Combined Error Display */}
-          {error && <p className="text-red-500 mb-4 text-center px-4 py-2 bg-red-900 bg-opacity-30 rounded border border-red-700 text-sm">{error}</p>}
-          {categoryError && <p className="text-yellow-500 mb-4 text-center px-4 py-2 bg-yellow-900 bg-opacity-30 rounded border border-yellow-700 text-sm">{categoryError}</p>}
+          {error && <p className="text-red-500 mb-4 text-center px-4 py-2 bg-red-900 bg-opacity-30 rounded">{error}</p>}
 
+          {/* Category Input Section (kept as is) */}
+          {/* <div> ... category select ... </div> */}
 
-          <div className="space-y-5">
-
-            {/* Category multi‑select */}
+          <div className="space-y-4 mt-4"> {/* Added margin-top */}
+            {/* Title, Description, Ingredients, Instructions Inputs (kept as is) */}
             <div>
-              <label htmlFor="category-select"
-                     className="block text-gray-300 mb-2 font-medium">
-                Categories
+              <label className="block text-gray-300 mb-2">Title</label>
+              <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full p-2 rounded bg-gray-800 text-white focus:ring-2 focus:ring-blue-500"
+                  required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Description</label>
+              <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full p-2 rounded bg-gray-800 text-white focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-300 mb-2">
+                Ingredients (one per line)
               </label>
-
-              {categoryLoading ? (
-                  <div className="w-full p-2.5 rounded bg-gray-800 text-gray-400
-                    border border-gray-700 italic">
-                    Loading categories…
-                  </div>
-              ) : availableCategories.length === 0 ? (
-                  <div className="w-full p-2.5 rounded bg-gray-800 text-yellow-500
-                    border border-gray-700 italic text-sm">
-                    No categories available.
-                  </div>
-              ) : (
-                  <select
-                      id="category-select"
-                      multiple                                   /* ← key line */
-                      value={selectedCatIds}
-                      onChange={e => {
-                        const ids = Array.from(
-                            e.target.selectedOptions,
-                            opt => Number(opt.value)
-                        );
-                        setSelectedCatIds(ids);
-                      }}
-                      className="w-full h-40 p-2.5 rounded bg-gray-800 text-white
-                 border border-gray-700 focus:ring-2 focus:ring-blue-500
-                 outline-none"
-                      required
-                  >
-                    {availableCategories.map(cat => (
-                        <option key={cat.category_id} value={cat.category_id}>
-                          {cat.name}
-                        </option>
-                    ))}
-                  </select>
-              )}
-
-              <p className="text-xs text-gray-500 mt-1">
-                Hold Ctrl (Cmd on Mac) to select multiple
-              </p>
+              <textarea
+                  value={ingredients}
+                  onChange={(e) => setIngredients(e.target.value)}
+                  className="w-full p-2 rounded bg-gray-800 text-white focus:ring-2 focus:ring-blue-500"
+                  rows="4"
+                  required
+              />
             </div>
 
-            {/* --- End Category Selection Dropdown --- */}
-
-
-            {/* Title */}
             <div>
-              <label htmlFor="title" className="block text-gray-300 mb-2 font-medium">Title</label>
-              <input id="title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-2.5 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required />
-            </div>
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-gray-300 mb-2 font-medium">Description</label>
-              <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2.5 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" rows="3" />
-            </div>
-            {/* Ingredients */}
-            <div>
-              <label htmlFor="ingredients" className="block text-gray-300 mb-2 font-medium">Ingredients (one per line)</label>
-              <textarea id="ingredients" value={ingredients} onChange={(e) => setIngredients(e.target.value)} className="w-full p-2.5 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" rows="5" required />
-            </div>
-            {/* Instructions */}
-            <div>
-              <label htmlFor="instructions" className="block text-gray-300 mb-2 font-medium">Instructions</label>
-              <textarea id="instructions" value={instructions} onChange={(e) => setInstructions(e.target.value)} className="w-full p-2.5 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" rows="7" required />
+              <label className="block text-gray-300 mb-2">Instructions</label>
+              <textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  className="w-full p-2 rounded bg-gray-800 text-white focus:ring-2 focus:ring-blue-500"
+                  rows="6"
+                  required
+              />
             </div>
 
-            {/* Combined Image Handling Section */}
+            {/* --- Combined Image Handling Section --- */}
             <div>
-              <label className="block text-gray-300 mb-3 font-semibold text-lg border-t border-gray-700 pt-5">Add Photos (Optional)</label>
+              <label className="block text-gray-300 mb-2 font-semibold">Add Photos</label> {/* Added font-semibold */}
+
               {/* Input for External URLs */}
-              <div className="space-y-2 mb-4 border border-gray-700 p-4 rounded-md bg-gray-800/30">
-                <p className="text-sm text-gray-400 mb-2">Enter external image URLs:</p>
+              <div className="space-y-2 mb-4 border border-gray-700 p-3 rounded"> {/* Added border/padding */}
+                <p className="text-sm text-gray-400 mb-2">Enter external image URLs (optional):</p>
                 {imageUrls.map((url, index) => (
-                    <input key={`url-${index}`} type="url" value={url} onChange={(e) => {const newUrls = [...imageUrls]; newUrls[index] = e.target.value; setImageUrls(newUrls);}} placeholder="https://example.com/image.jpg" className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-gray-500 text-sm" />
+                    <input
+                        key={`url-${index}`} // Use a more stable key if possible, but index is okay here
+                        type="url"
+                        value={url}
+                        onChange={(e) => {
+                          const newUrls = [...imageUrls];
+                          newUrls[index] = e.target.value;
+                          setImageUrls(newUrls);
+                        }}
+                        placeholder="https://example.com/image.jpg"
+                        className="w-full p-2 rounded bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 placeholder-gray-500" // Darker background
+                    />
                 ))}
-                <button type="button" onClick={() => setImageUrls([...imageUrls, ""])} className="text-blue-500 hover:text-blue-400 text-xs mt-1">+ Add URL field</button>
+                <button
+                    type="button"
+                    onClick={() => setImageUrls([...imageUrls, ""])}
+                    className="text-blue-500 hover:text-blue-400 text-sm mt-1" // Added margin-top
+                >
+                  + Add another URL field
+                </button>
               </div>
+
               {/* Input for File Uploads */}
-              <div className="mb-4 border border-gray-700 p-4 rounded-md bg-gray-800/30">
-                <p className="text-sm text-gray-400 mb-2">Or upload image files:</p>
-                <input type="file" multiple onChange={handleFileChange} className="hidden" id="file-upload" accept="image/png, image/jpeg, image/gif, image/webp" />
-                <label htmlFor="file-upload" className="cursor-pointer inline-block bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition-colors duration-200 text-sm">Choose Files...</label>
-                {files.length > 0 && (<div className="text-gray-400 text-xs mt-2">Selected: {Array.from(files).map(f => f.name).join(', ')}</div>)}
+              <div className="mb-4 border border-gray-700 p-3 rounded"> {/* Added border/padding */}
+                <p className="text-sm text-gray-400 mb-2">Or upload image files (JPEG, PNG, GIF, WebP):</p>
+                {/* Hidden file input */}
+                <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange} // Use the state handler
+                    className="hidden" // Keep hidden, use label to trigger
+                    id="file-upload"
+                    accept="image/png, image/jpeg, image/gif, image/webp" // Specify accepted types
+                />
+                {/* Label styled as a button */}
+                <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer inline-block bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition-colors duration-200 text-sm"
+                >
+                  Choose Files...
+                </label>
+
+                {/* Display selected file names */}
+                {files.length > 0 && (
+                    <div className="text-gray-400 text-sm mt-2">
+                      Selected: {Array.from(files).map(f => f.name).join(', ')}
+                    </div>
+                )}
               </div>
             </div>
+            {/* --- End of Image Handling Section --- */}
 
-            {/* Submit Button */}
+
             <button
                 type="submit"
-                // Disable if submitting OR if fetching categories OR if no categories exist
-                disabled={loading || categoryLoading || availableCategories.length === 0}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed mt-6 font-semibold text-lg shadow-lg hover:shadow-blue-500/30"
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 mt-6 font-semibold text-lg" // Increased padding/margin/font-size
             >
               {loading ? "Submitting..." : "Submit Recipe"}
             </button>
