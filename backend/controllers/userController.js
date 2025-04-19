@@ -17,15 +17,33 @@ export const registerUser = async (req, res) => {
       "INSERT INTO user (name, username, password) VALUES (?, ?, ?)",
       [name, username, password]
     );
+    
+    const userId = result.insertId;
 
     if (isAdmin) {
       await pool.query(
         "INSERT INTO admin (user_id, admin_rank) VALUES (?, ?)",
-        [result.insertId, adminRank || 1]
+        [userId, adminRank || 1]
       );
     }
 
-    res.status(201).json({ message: 'User registered successfully' });
+    // Determine role (similar to loginUser)
+    let role = 'user';
+    if (isAdmin) {
+      role = 'admin';
+    }
+
+    // Set up the session just like in loginUser
+    req.session.user = {
+      user_id: userId,
+      name: name,
+      role
+    };
+
+    res.status(201).json({ 
+      message: 'User registered successfully',
+      user: req.session.user 
+    });
   } catch (error) {
     console.error('Error registering user:', error);
     if (error.code === 'ER_DUP_ENTRY') {
