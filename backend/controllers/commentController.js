@@ -200,7 +200,7 @@ export const updateComment = async (req, res) => {
  */
 export const deleteComment = async (req, res) => {
     const { id } = req.params;
-    const userId = req.session?.user?.user_id; // Get user ID from session
+    const userId = req.session?.user?.user_id; 
 
     try {
         // Check if comment exists
@@ -209,12 +209,19 @@ export const deleteComment = async (req, res) => {
             return res.status(404).json({ error: 'Comment not found' });
         }
 
-        // Check if user owns this comment or is admin
-        if (userId !== existing[0].user_id) {
+        // Check if user is the owner of this comment
+        const isOwner = userId === existing[0].user_id;
+        
+        // If not owner, check if user is an admin
+        let isAdmin = false;
+        if (!isOwner && userId) {
             const [adminCheck] = await pool.query('SELECT * FROM admin WHERE user_id = ?', [userId]);
-            if (!adminCheck.length) {
-                return res.status(403).json({ error: 'Unauthorized to delete this comment' });
-            }
+            isAdmin = adminCheck.length > 0;
+        }
+
+        // If neither owner nor admin, deny access
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ error: 'Unauthorized to delete this comment' });
         }
 
         await pool.query('DELETE FROM comments WHERE comment_id = ?', [id]);

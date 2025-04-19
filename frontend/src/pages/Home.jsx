@@ -20,9 +20,7 @@ const Home = () => {
         if (query && query.trim() !== "") {
           // Use the combined search endpoint if a query is present
           const response = await fetch(
-            `http://localhost:5000/api/search?query=${encodeURIComponent(
-              query
-            )}`
+            `http://localhost:5000/api/search?query=${encodeURIComponent(query)}`
           );
           if (!response.ok) {
             throw new Error("Failed to fetch search results");
