@@ -12,22 +12,14 @@ export const combinedSearch = async (req, res) => {
         
         const [recipeRows] = await pool.query(
             `SELECT 
-                r.recipe_id, 
-                r.name,
-                COALESCE(r.steps, 'No description available') AS description,
-                'recipe' AS type,
-                COALESCE(
-                    (SELECT 
-                         CASE 
-                             WHEN p.name LIKE 'http://%' OR p.name LIKE 'https://%' THEN p.name
-                             ELSE 
-                             CONCAT('http://localhost:5000/uploads/', p.name) 
-                         END
-                     FROM photo p 
-                     WHERE p.recipe_id = r.recipe_id 
-                     LIMIT 1),
-                    '/placeholder-food.png'
-                ) AS photo_url
+                r.*,
+                (SELECT CASE
+                            WHEN p.name LIKE 'http%' THEN p.name
+                            ELSE CONCAT('http://localhost:5000/uploads/', p.name)
+                            END
+                 FROM photo p
+                 WHERE p.recipe_id = r.recipe_id
+                 LIMIT 1) AS main_photo
              FROM recipe r
              WHERE r.name LIKE ?
              LIMIT 10`,
