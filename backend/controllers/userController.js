@@ -36,6 +36,7 @@ export const registerUser = async (req, res) => {
     // Set up the session just like in loginUser
     req.session.user = {
       user_id: userId,
+      username: username,
       name: name,
       role
     };
