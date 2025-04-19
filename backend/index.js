@@ -19,6 +19,8 @@ import cors from "cors";
 import session from "express-session";
 import uploadRoutes from './routes/upload.js';
 import searchRoutes from './routes/search.js';
+import path from "path";
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -61,6 +63,11 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/admins', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // A default route
 app.get("/", (req, res) => {
@@ -70,6 +77,8 @@ app.get("/", (req, res) => {
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+    console.log(`Serving uploads from: ${path.join(__dirname, 'uploads')}`);
+    console.log(`Access uploads via: http://localhost:${PORT}/uploads/<filename>`);
 });
 
 

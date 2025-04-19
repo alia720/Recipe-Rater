@@ -11,6 +11,11 @@ const RecipeCard = ({ recipe }) => {
   const menuRef = useRef(null);
 
   const isOwnerOrAdmin = user && (user.role === 'admin' || user.user_id === recipe.user_id);
+  const photoSrc = recipe.main_photo &&
+      (recipe.main_photo.startsWith('http')
+          ? recipe.main_photo
+          : `http://localhost:5000/uploads/${recipe.main_photo}`);
+
 
   // Close menu when clicking outside
   useEffect(() => {

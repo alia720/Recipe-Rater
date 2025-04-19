@@ -7,7 +7,9 @@ import {
     searchPhotos,
     createPhoto,
     updatePhoto,
-    deletePhoto
+    deletePhoto,
+    addPhotoFromUrl,
+    upload
 } from '../controllers/photoController.js';
 
 const router = Router();
@@ -22,15 +24,25 @@ router.get('/:id', getPhotoById);
 router.get('/recipe/:recipeId', getPhotosByRecipe);
 
 // SEARCH photos by name or caption
-router.get('/search/query', searchPhotos);
+router.get('/search', searchPhotos);
 
-// CREATE a new photo
-router.post('/', createPhoto);
+// // CREATE a new photo
+// router.post('/', createPhoto);
 
 // UPDATE a photo
 router.put('/:id', updatePhoto);
 
 // DELETE a photo
 router.delete('/:id', deletePhoto);
+
+router.post('/url', addPhotoFromUrl);
+
+
+router.post(
+    '/',
+    upload.single('photoFile'),
+    createPhoto
+);
+
 
 export default router;

@@ -17,7 +17,12 @@ export const combinedSearch = async (req, res) => {
                 COALESCE(r.steps, 'No description available') AS description,
                 'recipe' AS type,
                 COALESCE(
-                    (SELECT CONCAT('http://localhost:5000/uploads/', p.name) 
+                    (SELECT 
+                         CASE 
+                             WHEN p.name LIKE 'http://%' OR p.name LIKE 'https://%' THEN p.name
+                             ELSE 
+                             CONCAT('http://localhost:5000/uploads/', p.name) 
+                         END
                      FROM photo p 
                      WHERE p.recipe_id = r.recipe_id 
                      LIMIT 1),

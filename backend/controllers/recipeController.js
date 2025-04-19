@@ -13,7 +13,12 @@ export const getAllRecipes = async (req, res) => {
         let query = `
             SELECT
                 r.*,
-                (SELECT CONCAT('http://localhost:5000/uploads/', p.name)
+                (SELECT
+                     CASE
+                         WHEN p.name LIKE 'http%'        -- already an absolute URL
+                             THEN p.name
+                         ELSE CONCAT('http://localhost:5000/uploads/', p.name)
+                         END
                  FROM photo p
                  WHERE p.recipe_id = r.recipe_id
                     LIMIT 1) AS main_photo,
