@@ -6,60 +6,88 @@ import pool from '../db.js';
  */
 export const getAllRecipes = async (req, res) => {
     try {
-        const { sort, limit = 100, page = 1 } = req.query;
+        /* ---------- query params ---------- */
+        const {
+            sort        = "newest",
+            limit: l    = 100,
+            page: p     = 1,
+            category    // ← may be undefined or '5'
+        } = req.query;
+
+        const limit  = parseInt(l, 10);
+        const page   = parseInt(p, 10);
         const offset = (page - 1) * limit;
 
-        // Note that r.* now includes the user_id.
-        let query = `
-            SELECT
-                r.*,
-                (SELECT
-                     CASE
-                         WHEN p.name LIKE 'http%'        -- already an absolute URL
-                             THEN p.name
-                         ELSE CONCAT('http://localhost:5000/uploads/', p.name)
-                         END
-                 FROM photo p
-                 WHERE p.recipe_id = r.recipe_id
-                    LIMIT 1) AS main_photo,
-                COALESCE(SUM(ld.liked = 1), 0) AS likes,
-                COALESCE(SUM(ld.liked = 0), 0) AS dislikes,
-                (COALESCE(SUM(ld.liked = 1), 0) - COALESCE(SUM(ld.liked = 0), 0)) AS net_votes
-            FROM recipe r
-                LEFT JOIN likes_dislikes ld ON r.recipe_id = ld.recipe_id
-        `;
+        /* ---------- base query ---------- */
+        let  sql  = `
+      SELECT
+        r.*,
+        (SELECT CASE
+                    WHEN p.name LIKE 'http%' THEN p.name
+                    ELSE CONCAT('http://localhost:5000/uploads/', p.name)
+                END
+         FROM photo p
+         WHERE p.recipe_id = r.recipe_id
+         LIMIT 1) AS main_photo,
+        COALESCE(SUM(ld.liked = 1), 0) AS likes,
+        COALESCE(SUM(ld.liked = 0), 0) AS dislikes,
+        (COALESCE(SUM(ld.liked = 1), 0) -
+         COALESCE(SUM(ld.liked = 0), 0)) AS net_votes
+      FROM recipe r
+      LEFT JOIN likes_dislikes ld ON ld.recipe_id = r.recipe_id
+    `;
 
-        query += ' GROUP BY r.recipe_id';
+        const params = [];
 
-        switch (sort) {
-            case 'top_rated':
-                query += ' ORDER BY net_votes DESC';
-                break;
-            case 'newest':
-            default:
-                query += ' ORDER BY r.recipe_id DESC';
-                break;
+        /* ---------- optional category filter ---------- */
+        if (category) {
+            sql += `
+        JOIN belongs_to bt ON bt.recipe_id = r.recipe_id
+        WHERE bt.category_id = ?
+      `;
+            params.push(parseInt(category, 10));
         }
 
-        query += ' LIMIT ? OFFSET ?';
+        sql += " GROUP BY r.recipe_id ";
 
-        const [rows] = await pool.query(query, [parseInt(limit), parseInt(offset)]);
+        /* ---------- sorting ---------- */
+        sql +=
+            sort === "top_rated"
+                ? " ORDER BY net_votes DESC "
+                : " ORDER BY r.recipe_id DESC ";
 
-        const [countRows] = await pool.query('SELECT COUNT(*) AS count FROM recipe');
-        const totalItems = countRows[0].count;
+        /* ---------- pagination ---------- */
+        sql += " LIMIT ? OFFSET ? ";
+        params.push(limit, offset);
 
+        /* ---------- run query ---------- */
+        const [rows] = await pool.query(sql, params);
+
+        /* ---------- total count (for pagination widget) ---------- */
+        // count _with_ the same filter so totals make sense:
+        let  countSql = "SELECT COUNT(DISTINCT r.recipe_id) AS cnt FROM recipe r ";
+        const countParams = [];
+
+        if (category) {
+            countSql += "JOIN belongs_to bt ON bt.recipe_id = r.recipe_id WHERE bt.category_id = ?";
+            countParams.push(parseInt(category, 10));
+        }
+
+        const [[{ cnt: totalItems }]] = await pool.query(countSql, countParams);
+
+        /* ---------- respond ---------- */
         res.json({
             data: rows,
             pagination: {
                 totalItems,
-                currentPage: parseInt(page),
+                currentPage: page,
                 totalPages: Math.ceil(totalItems / limit),
-                itemsPerPage: parseInt(limit)
+                itemsPerPage: limit
             }
         });
-    } catch (error) {
-        console.error('Error fetching recipes:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+    } catch (err) {
+        console.error("Error fetching recipes:", err);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
@@ -68,29 +96,49 @@ export const getAllRecipes = async (req, res) => {
  */
 export const getRecipeById = async (req, res) => {
     const { id } = req.params;
+
     try {
-        const [recipeRows] = await pool.query(
-            `SELECT
-                 r.*,
-                 (SELECT CONCAT('http://localhost:5000/uploads/', p.name)
-                  FROM photo p
-                  WHERE p.recipe_id = r.recipe_id
-                     LIMIT 1) AS main_photo
-             FROM recipe r
-             WHERE r.recipe_id = ?`,
+        /* one query, aggregates category names into a comma‑separated string */
+        const [rows] = await pool.query(
+            `
+                SELECT
+                    r.*,
+                    /* main photo (unchanged) */
+                    (SELECT CASE
+                                WHEN p.name LIKE 'http%'    THEN p.name
+                                ELSE CONCAT('http://localhost:5000/uploads/', p.name)
+                                END
+                     FROM photo p
+                     WHERE p.recipe_id = r.recipe_id
+                        LIMIT 1)                              AS main_photo,
+
+          /* ← NEW: all category names, e.g. "Dessert,Snack" */
+          GROUP_CONCAT(c.name ORDER BY c.name)   AS cat_csv
+                FROM recipe r
+                    LEFT JOIN belongs_to bt ON bt.recipe_id = r.recipe_id
+                    LEFT JOIN category    c ON c.category_id = bt.category_id
+                WHERE r.recipe_id = ?
+                GROUP BY r.recipe_id
+            `,
             [id]
         );
 
-        if (recipeRows.length === 0) {
-            return res.status(404).json({ error: 'Recipe not found' });
+        if (!rows.length) {
+            return res.status(404).json({ error: "Recipe not found" });
         }
 
-        res.json(recipeRows[0]);
-    } catch (error) {
-        console.error('Error fetching recipe by ID:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        /* turn the CSV into an array ([]) so the front‑end can .join() */
+        const recipe = rows[0];
+        recipe.categories = recipe.cat_csv ? recipe.cat_csv.split(",") : [];
+        delete recipe.cat_csv;           // optional – hide helper field
+
+        res.json(recipe);
+    } catch (err) {
+        console.error("Error fetching recipe by ID:", err);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 };
+
 
 /**
  * Search for recipes by name (partial match).
@@ -205,12 +253,16 @@ export const getRecipesByUserId = async (req, res) => {
     // Optional: You can add pagination and sorting if needed (similar to getAllRecipes)
     try {
         const [rows] = await pool.query(`
-            SELECT 
+            SELECT
                 r.*,
-                (SELECT CONCAT('http://localhost:5000/uploads/', p.name) 
-                 FROM photo p 
-                 WHERE p.recipe_id = r.recipe_id 
-                 LIMIT 1) AS main_photo,
+                /* main photo (unchanged) */
+                (SELECT CASE
+                            WHEN p.name LIKE 'http%'    THEN p.name
+                            ELSE CONCAT('http://localhost:5000/uploads/', p.name)
+                            END
+                 FROM photo p
+                 WHERE p.recipe_id = r.recipe_id
+                    LIMIT 1)                              AS main_photo,
                 COALESCE(SUM(ld.liked = 1), 0) AS likes,
                 COALESCE(SUM(ld.liked = 0), 0) AS dislikes,
                 (COALESCE(SUM(ld.liked = 1), 0) - COALESCE(SUM(ld.liked = 0), 0)) AS net_votes
