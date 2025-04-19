@@ -7,7 +7,7 @@ import { MagnifyingGlassIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/o
 
 const NavLink = ({ to, children, isMobile = false, onClick = () => {} }) => {
   const location = useLocation();
-  const isActive = location.pathname === to || (to === '/home' && location.pathname === '/');
+  const isActive = location.pathname === to;
 
   return (
     <li className={`relative py-2 group ${isMobile ? '' : 'mx-6'}`}>
@@ -53,7 +53,8 @@ const DesktopSearch = ({ onSearchSubmit }) => {
       if (e.key === "Escape" && isSearchOpen) toggleSearch(); 
     };
     const handleClickOutside = (e) => { 
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target) && isSearchOpen) toggleSearch(); 
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target) && isSearchOpen
+      ) toggleSearch(); 
     };
     document.addEventListener("keydown", handleEscape);
     document.addEventListener("mousedown", handleClickOutside);
@@ -195,7 +196,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const isHomePage = ['/', '/home'].includes(location.pathname);
+  const isHomePage = location.pathname === '/home';
 
   const baseMenuItems = [{ name: "Home", path: "/home" }];
   const authMenuItems = [{ name: "Add Recipe", path: "/add-recipe" }];
@@ -229,20 +230,16 @@ const Navbar = () => {
           className="flex justify-between items-center h-[calc(var(--navbar-height)-2px)] px-4 md:px-6 w-full backdrop-blur-md bg-black/85 relative" 
           style={{ '--navbar-height': `${navbarHeight}px` }}
         >
-          {/* Left Section - Search or Spacer */}
           <div className="relative hidden lg:flex items-center lg:w-40">
             {isHomePage ? (
               <DesktopSearch onSearchSubmit={handleSearchSubmit} />
             ) : (
-              // Maintain layout with empty spacer
               <div className="w-40" />
             )}
           </div>
 
-          {/* Mobile Spacer */}
           <div className="lg:hidden flex-1"></div>
 
-          {/* Center Navigation */}
           <nav className="hidden lg:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <ul className="flex text-white gap-x-8 font-normal tracking-wide text-base">
               {menuItems.map((item) => (
@@ -253,7 +250,6 @@ const Navbar = () => {
             </ul>
           </nav>
 
-          {/* Right Section - User Status */}
           <div className="flex items-center gap-4">
             <UserStatus />
           </div>
