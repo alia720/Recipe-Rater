@@ -9,7 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const upLoadDir = path.join(__dirname, '..','uploads');
-
+const UPLOAD_DIR   = path.resolve('uploads');
+const URL_PATTERN  = /^https?:\/\//i;                 // crude http/https check
 if(!fs.existsSync(upLoadDir)){
     fs.mkdirSync(upLoadDir, {recursive: true});
     console.log("Created uploads directory", upLoadDir);
@@ -97,8 +98,8 @@ export const getPhotoById = async (req, res) => {
 export const getPhotosByRecipe = async (req, res) => {
     const { recipeId } = req.params;
     try {
-      const [rows] = await pool.query(
-        `SELECT 
+        const [rows] = await pool.query(
+            `SELECT 
           photo_id,
           CASE 
             WHEN name LIKE 'http%' THEN name
@@ -107,15 +108,15 @@ export const getPhotosByRecipe = async (req, res) => {
           caption,
           created_at
          FROM photo 
-         WHERE recipe_id = ?`, 
-        [recipeId]
-      );
-      res.json(rows);
+         WHERE recipe_id = ?`,
+            [recipeId]
+        );
+        res.json(rows);
     } catch (error) {
-      console.error('Error fetching photos by recipe:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error fetching photos by recipe:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-  };
+};
 
 /**
  * Search photos by name or caption (partial match).
@@ -219,48 +220,88 @@ export const addPhotoFromUrl = async (req, res) => {
 };
 
 
-/**
- * Update a photo record by ID.
- */
+/* ---------- UPDATE PHOTO ---------- */
 export const updatePhoto = async (req, res) => {
-    const { id } = req.params;
-    const { name, caption } = req.body;
+    const { id }             = req.params;
+    const { name, caption }  = req.body;
+
+    if (name === undefined && caption === undefined) {
+        return res
+            .status(400)
+            .json({ error: 'Provide at least one of "name" or "caption" to update.' });
+    }
 
     try {
-        const [existing] = await pool.query('SELECT * FROM photo WHERE photo_id = ?', [id]);
-        if (!existing.length) {
+        const [[existing]] = await pool.query(
+            'SELECT * FROM photo WHERE photo_id = ?',
+            [id]
+        );
+        if (!existing) {
             return res.status(404).json({ error: 'Photo not found' });
         }
 
-        const updatedName = name ?? existing[0].name;
-        const updatedCaption = caption ?? existing[0].caption;
+        /* decide final values */
+        let finalName     = existing.name;
+        let finalCaption  = existing.caption;
 
-        await pool.query(
+        if (name !== undefined) {
+            // keep URL as‑is, otherwise assume it's a local filename
+            finalName = URL_PATTERN.test(name) ? name : name.replace(/^\/+/, '');
+        }
+        if (caption !== undefined) {
+            finalCaption = caption;
+        }
+
+        const [result] = await pool.query(
             'UPDATE photo SET name = ?, caption = ? WHERE photo_id = ?',
-            [updatedName, updatedCaption, id]
+            [finalName, finalCaption, id]
         );
+
+        if (result.affectedRows === 0) {
+            return res.status(500).json({ error: 'Update failed – unexpected DB result.' });
+        }
         res.json({ message: 'Photo updated successfully' });
-    } catch (error) {
-        console.error('Error updating photo:', error);
+
+    } catch (err) {
+        console.error('Error updating photo:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-/**
- * Delete a photo by ID.
- */
+/* ---------- DELETE PHOTO ---------- */
 export const deletePhoto = async (req, res) => {
     const { id } = req.params;
+
     try {
-        const [existing] = await pool.query('SELECT * FROM photo WHERE photo_id = ?', [id]);
-        if (!existing.length) {
+        const [[photo]] = await pool.query(
+            'SELECT * FROM photo WHERE photo_id = ?',
+            [id]
+        );
+        if (!photo) {
             return res.status(404).json({ error: 'Photo not found' });
         }
 
-        await pool.query('DELETE FROM photo WHERE photo_id = ?', [id]);
+        // remove DB row first (so we don’t leave dangling foreign keys)
+        const [result] = await pool.query(
+            'DELETE FROM photo WHERE photo_id = ?',
+            [id]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(500).json({ error: 'Delete failed – unexpected DB result.' });
+        }
+
+        /* delete file from disk *only* if it lives under /uploads */
+        if (!URL_PATTERN.test(photo.name)) {
+            const filePath = path.join(UPLOAD_DIR, photo.name);
+            // ignore ENOENT in case the file is already gone
+            fs.unlink(filePath, (err) =>
+                err && err.code !== 'ENOENT' ? console.error(err) : null);
+        }
+
         res.json({ message: 'Photo deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting photo:', error);
+
+    } catch (err) {
+        console.error('Error deleting photo:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
