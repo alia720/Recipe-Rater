@@ -43,10 +43,10 @@ export const getCommentById = async (req, res) => {
         const [rows] = await pool.query(
             'SELECT c.*, u.username FROM comments c ' +
             'LEFT JOIN user u ON c.user_id = u.user_id ' +
-            'WHERE c.comment_id = ?', 
+            'WHERE c.comment_id = ?',
             [id]
         );
-        
+
         if (!rows.length) {
             return res.status(404).json({ error: 'Comment not found' });
         }
@@ -102,7 +102,7 @@ export const getCommentsByUser = async (req, res) => {
  */
 export const createComment = async (req, res) => {
     const { recipe_id, user_id, title, text } = req.body;
-    
+
     // Validate required fields
     if (!recipe_id || !user_id || !text) {
         return res.status(400).json({ error: 'Recipe ID, user ID, and comment text are required.' });
@@ -148,10 +148,25 @@ export const createComment = async (req, res) => {
 /**
  * Update an existing comment.
  */
+
+/**
+ * Update an existing comment.
+ * INSECURE VERSION: Reads user ID from request body. DO NOT USE IN PRODUCTION.
+ */
 export const updateComment = async (req, res) => {
     const { id } = req.params;
-    const { title, text } = req.body;
-    const userId = req.session?.user?.user_id; // Get user ID from session
+    // --- INSECURE CHANGE: Read user ID and potentially role from body ---
+    const { title, text, requestingUserId /*, requestingUserRole */ } = req.body;
+    // --- Note: We are now TRUSTING the client sent the correct requestingUserId ---
+
+    // Basic validation: ensure text is provided if that's the main goal
+    if (text === undefined || text === null) {
+        return res.status(400).json({ error: 'Comment text is required for update.' });
+    }
+    // --- INSECURE CHANGE: Check if requestingUserId was sent ---
+    if (requestingUserId === undefined) {
+        return res.status(401).json({ error: 'Unauthorized: Missing user identification.' });
+    }
 
     try {
         // Check if comment exists
@@ -160,21 +175,34 @@ export const updateComment = async (req, res) => {
             return res.status(404).json({ error: 'Comment not found' });
         }
 
-        // Check if user owns this comment or is admin
-        if (userId !== existing[0].user_id) {
-            const [adminCheck] = await pool.query('SELECT * FROM admin WHERE user_id = ?', [userId]);
-            if (!adminCheck.length) {
-                return res.status(403).json({ error: 'Unauthorized to update this comment' });
-            }
+        // --- INSECURE AUTHORIZATION ---
+        // Check if the user ID sent from the client owns this comment
+        const isOwner = requestingUserId === existing[0].user_id;
+
+        // Check if the user ID sent from the client corresponds to an admin
+        // NOTE: Still requires a DB check, but trusts the requestingUserId
+        let isAdmin = false;
+        // if (!isOwner && requestingUserRole === 'admin') { // If role was also sent (still insecure)
+        // Or check if the *requestingUserId* exists in the admin table (more common but still trusts the ID)
+        if (!isOwner) {
+            const [adminCheck] = await pool.query('SELECT * FROM admin WHERE user_id = ?', [requestingUserId]);
+            isAdmin = adminCheck.length > 0;
         }
 
-        // Update the comment
-        const updatedTitle = title ?? existing[0].title;
-        const updatedText = text ?? existing[0].text;
+        // Deny if neither owner nor admin (based on client-sent data)
+        if (!isOwner && !isAdmin) {
+            console.warn(`INSECURE: Denying update for comment ${id}. Requesting user ${requestingUserId} is not owner ${existing[0].user_id} and not admin.`);
+            return res.status(403).json({ error: 'Forbidden: You do not have permission to update this comment.' });
+        }
+        // --- END INSECURE AUTHORIZATION ---
+
+        // Update the comment (only update fields provided)
+        const updatedTitle = title ?? existing[0].title; // Keep original title if not provided
+        // Text is required by validation above
 
         await pool.query(
             'UPDATE comments SET title = ?, text = ? WHERE comment_id = ?',
-            [updatedTitle, updatedText, id]
+            [updatedTitle, text, id]
         );
 
         // Get the updated comment
@@ -186,7 +214,7 @@ export const updateComment = async (req, res) => {
         );
 
         res.json({
-            message: 'Comment updated successfully',
+            message: 'Comment updated successfully (using insecure auth)',
             comment: updated[0]
         });
     } catch (error) {
@@ -197,10 +225,19 @@ export const updateComment = async (req, res) => {
 
 /**
  * Delete a comment.
+ * INSECURE VERSION: Reads user ID from request body. DO NOT USE IN PRODUCTION.
  */
 export const deleteComment = async (req, res) => {
     const { id } = req.params;
-    const userId = req.session?.user?.user_id; 
+    // --- INSECURE CHANGE: Read user ID from body ---
+    // Note: Reading body from DELETE needs proper Express middleware (like express.json())
+    const { requestingUserId /*, requestingUserRole */ } = req.body;
+    // --- Note: We are now TRUSTING the client sent the correct requestingUserId ---
+
+    // --- INSECURE CHANGE: Check if requestingUserId was sent ---
+    if (requestingUserId === undefined) {
+        return res.status(401).json({ error: 'Unauthorized: Missing user identification.' });
+    }
 
     try {
         // Check if comment exists
@@ -209,23 +246,22 @@ export const deleteComment = async (req, res) => {
             return res.status(404).json({ error: 'Comment not found' });
         }
 
-        // Check if user is the owner of this comment
-        const isOwner = userId === existing[0].user_id;
-        
-        // If not owner, check if user is an admin
+        // --- INSECURE AUTHORIZATION ---
+        const isOwner = requestingUserId === existing[0].user_id;
         let isAdmin = false;
-        if (!isOwner && userId) {
-            const [adminCheck] = await pool.query('SELECT * FROM admin WHERE user_id = ?', [userId]);
+        if (!isOwner) {
+            const [adminCheck] = await pool.query('SELECT * FROM admin WHERE user_id = ?', [requestingUserId]);
             isAdmin = adminCheck.length > 0;
         }
 
-        // If neither owner nor admin, deny access
         if (!isOwner && !isAdmin) {
-            return res.status(403).json({ error: 'Unauthorized to delete this comment' });
+            console.warn(`INSECURE: Denying delete for comment ${id}. Requesting user ${requestingUserId} is not owner ${existing[0].user_id} and not admin.`);
+            return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this comment.' });
         }
+        // --- END INSECURE AUTHORIZATION ---
 
         await pool.query('DELETE FROM comments WHERE comment_id = ?', [id]);
-        res.json({ message: 'Comment deleted successfully' });
+        res.json({ message: 'Comment deleted successfully (using insecure auth)' });
     } catch (error) {
         console.error('Error deleting comment:', error);
         res.status(500).json({ error: 'Internal Server Error' });
