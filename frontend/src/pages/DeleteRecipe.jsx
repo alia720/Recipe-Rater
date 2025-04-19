@@ -47,7 +47,6 @@ const DeleteRecipe = () => {
         try {
             const res = await fetch(`http://localhost:5000/api/recipes/${recipeId}`, {
                 method: 'DELETE',
-                // Add headers if needed (e.g., Authorization)
             });
 
             if (!res.ok) {
