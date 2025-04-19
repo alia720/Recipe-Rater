@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react'; // Added useEffect
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import userStatus from "../components/UserStatus.jsx";
+import {useUser} from "../context/UserContext.jsx";
 
 const DeleteRecipe = () => {
     const { recipeId } = useParams();
     const navigate = useNavigate();
+    const { user } = useUser();
 
     const [recipeName, setRecipeName] = useState(''); // State to hold recipe name
     const [loading, setLoading] = useState(false); // Loading for delete action
@@ -59,7 +62,9 @@ const DeleteRecipe = () => {
             }
 
             alert(`Recipe "${recipeName || 'ID: '+recipeId}" deleted successfully!`); // Use name in alert
-            navigate('/profile');
+            if (user.role === 'admin') navigate('/home');
+            else
+                navigate('/profile');
 
         } catch (err) {
             console.error("Delete error:", err);
