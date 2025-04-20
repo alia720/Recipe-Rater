@@ -37,22 +37,25 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false }
 }));
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://frontend-production-1d79.up.railway.app"
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowedOrigins = [
-        process.env.FRONTEND_URL || 'http://localhost:5173',
-        'https://your-railway-frontend-url.railway.app'
-      ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
   })
 );
+
 app.use('/api/search', searchRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/uploads', express.static('uploads'));
