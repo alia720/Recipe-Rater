@@ -21,7 +21,7 @@ const DeleteRecipe = () => {
             setFetchError('');
             setError(''); // Clear previous action errors
             try {
-                const res = await fetch(`http://localhost:5000/api/recipes/${recipeId}`);
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${recipeId}`);
                 if (!res.ok) {
                     if (res.status === 404) {
                         throw new Error('Recipe not found. It might have already been deleted.');
@@ -48,7 +48,7 @@ const DeleteRecipe = () => {
         setFetchError(''); // Clear fetch errors
 
         try {
-            const res = await fetch(`http://localhost:5000/api/recipes/${recipeId}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${recipeId}`, {
                 method: 'DELETE',
             });
 

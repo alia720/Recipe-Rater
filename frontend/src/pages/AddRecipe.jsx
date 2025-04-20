@@ -30,7 +30,7 @@ const AddRecipe = () => {
       setCategoryLoading(true);
       setCategoryError('');
       try {
-        const res = await fetch("http://localhost:5000/api/categories");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`);
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
           throw new Error(errorData.error || `Failed to fetch categories: ${res.statusText}`);
@@ -107,7 +107,7 @@ const AddRecipe = () => {
       // --- Step 1: Create Recipe ---
       const recipePayload = { user_id: user.user_id, name: title, steps: `Description: ${description.trim()}\nIngredients:\n${ingredients.trim()}\nInstructions:\n${instructions.trim()}` };
       console.log("Creating recipe:", recipePayload);
-      const recipeRes = await fetch("http://localhost:5000/api/recipes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(recipePayload) });
+      const recipeRes = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(recipePayload) });
       if (!recipeRes.ok) {
         const errorData = await recipeRes.json().catch(() => ({ error: 'Failed to parse recipe error' }));
         throw new Error(errorData.error || `Recipe creation failed: ${recipeRes.statusText}`);
@@ -120,7 +120,7 @@ const AddRecipe = () => {
       // --- Step 2: Link Categories ---
       const linkPromises = selectedCatIds.map(catId => {
         console.log(`Linking category ID: ${catId} to recipe ID: ${createdRecipeId}`);
-        return fetch("http://localhost:5000/api/belongs-to", { // Corrected endpoint if needed
+        return fetch(`${import.meta.env.VITE_API_URL}/api/belongs-to`, { // Corrected endpoint if needed
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ category_id: catId, recipe_id: createdRecipeId })
@@ -157,7 +157,7 @@ const AddRecipe = () => {
         const formData = new FormData();
         formData.append('photoFile', file);
         formData.append('recipe_id', createdRecipeId);
-        const uploadPromise = fetch('http://localhost:5000/api/photos', { method: 'POST', body: formData })
+        const uploadPromise = fetch(`${import.meta.env.VITE_API_URL}/api/photos`, { method: 'POST', body: formData })
             .then(async res => { if (!res.ok) { const errData = await res.json().catch(() => null); throw new Error(errData?.error || `Upload failed for ${file.name}: ${res.statusText}`); } return res.json(); });
         photoPromises.push(uploadPromise);
       });
@@ -165,7 +165,7 @@ const AddRecipe = () => {
       imageUrls.forEach(url => {
         const trimmedUrl = url.trim();
         if (trimmedUrl && trimmedUrl.startsWith('http')) {
-          const urlPromise = fetch('http://localhost:5000/api/photos/url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_id: createdRecipeId, name: trimmedUrl, caption: '' })})
+          const urlPromise = fetch(`${import.meta.env.VITE_API_URL}/api/photos/url`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recipe_id: createdRecipeId, name: trimmedUrl, caption: '' })})
               .then(async res => { if (!res.ok) { const errData = await res.json().catch(() => null); throw new Error(errData?.error || `Adding URL ${trimmedUrl} failed: ${res.statusText}`); } return res.json(); });
           photoPromises.push(urlPromise);
         }

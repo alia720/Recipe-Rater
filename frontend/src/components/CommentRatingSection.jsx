@@ -43,7 +43,7 @@ const CommentRatingSection = ({ recipeId: propRecipeId }) => {
     const fetchComments = async () => {
       setIsLoading(true); setCommentError(null);
       try {
-        const response = await fetch(`http://localhost:5000/api/comments/recipe/${recipeId}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/comments/recipe/${recipeId}`);
         if (!response.ok) { const errData = await response.json().catch(() => ({})); throw new Error(errData.error || `Failed to fetch comments (${response.status})`); }
         const data = await response.json(); setComments(data);
       } catch (err) { console.error('Error fetching comments:', err); setCommentError(`Failed to load comments: ${err.message}`);
@@ -62,7 +62,7 @@ const CommentRatingSection = ({ recipeId: propRecipeId }) => {
     setIsSubmitting(true);
     try {
       // Assuming secure session-based POST for creating comments
-      const res = await fetch('http://localhost:5000/api/comments', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/comments`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({
           recipe_id: recipeId, user_id: user.user_id, // user_id needed for DB insert
@@ -95,7 +95,7 @@ const CommentRatingSection = ({ recipeId: propRecipeId }) => {
 
     try {
       const res = await fetch(
-          `http://localhost:5000/api/comments/${commentId}`,
+          `${import.meta.env.VITE_API_URL}/api/comments/${commentId}`,
           {
             method: 'DELETE',
             // --- INSECURE CHANGE: Send user info in body ---
@@ -153,7 +153,7 @@ const CommentRatingSection = ({ recipeId: propRecipeId }) => {
 
     try {
       const res = await fetch(
-          `http://localhost:5000/api/comments/${commentId}`,
+          `${import.meta.env.VITE_API_URL}/api/comments/${commentId}`,
           {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },

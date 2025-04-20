@@ -1,7 +1,7 @@
 // components/PhotoManager.jsx
 import React, { useState, useEffect } from "react";
 
-const URL_PREFIX = "http://localhost:5000/uploads/";   // adjust if needed
+const URL_PREFIX = `${import.meta.env.VITE_API_URL}/uploads/`;   // adjust if needed
 
 export default function PhotoManager({ recipeId }) {
     const [photos, setPhotos] = useState([]);
@@ -10,7 +10,7 @@ export default function PhotoManager({ recipeId }) {
 
     /* -------- fetch existing photos -------- */
     useEffect(() => {
-        fetch(`http://localhost:5000/api/photos/recipe/${recipeId}`)
+        fetch(`${import.meta.env.VITE_API_URL}/api/photos/recipe/${recipeId}`)
             .then(r => r.json())
             .then(setPhotos)
             .catch(console.error);
@@ -18,7 +18,7 @@ export default function PhotoManager({ recipeId }) {
 
     /* ---------- helpers ---------- */
     const deletePhoto = async (photoId) => {
-        await fetch(`http://localhost:5000/api/photos/${photoId}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/photos/${photoId}`, {
             method: "DELETE",
             credentials: "include"
         });
@@ -26,7 +26,7 @@ export default function PhotoManager({ recipeId }) {
     };
 
     const updateCaption = async (photoId, caption) => {
-        await fetch(`http://localhost:5000/api/photos/${photoId}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/photos/${photoId}`, {
             method: "PUT",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({ caption })
@@ -46,7 +46,7 @@ export default function PhotoManager({ recipeId }) {
             fd.append("photoFile", f);
             fd.append("recipe_id", recipeId);
             promises.push(
-                fetch("http://localhost:5000/api/photos", {
+                fetch(`${import.meta.env.VITE_API_URL}/api/photos`, {
                     method: "POST", body: fd
                 })
             );
@@ -57,7 +57,7 @@ export default function PhotoManager({ recipeId }) {
             .filter(u => u.trim().startsWith("http"))
             .forEach(u => {
                 promises.push(
-                    fetch("http://localhost:5000/api/photos/url", {
+                    fetch(`${import.meta.env.VITE_API_URL}/api/photos/url`, {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
                         body: JSON.stringify({ recipe_id: recipeId, name: u.trim() })

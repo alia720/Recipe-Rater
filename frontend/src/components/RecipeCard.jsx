@@ -17,7 +17,7 @@ const RecipeCard = ({ recipe }) => {
   const photoSrc = recipe.main_photo &&
       (recipe.main_photo.startsWith('http')
           ? recipe.main_photo
-          : `http://localhost:5000/uploads/${recipe.main_photo}`);
+          : `${import.meta.env.VITE_API_URL}/uploads/${recipe.main_photo}`);
 
   // Fetch categories for this recipe if they're not already included
   useEffect(() => {
@@ -34,7 +34,7 @@ const RecipeCard = ({ recipe }) => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/recipes/${recipe.recipe_id}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${recipe.recipe_id}`);
         if (response.ok) {
           const data = await response.json();
           // Process categories from the fetched data

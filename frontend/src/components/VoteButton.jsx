@@ -18,7 +18,7 @@ const VoteButton = ({ recipeId }) => {
         
         // Get all votes for this recipe
         const votesResponse = await fetch(
-          `http://localhost:5000/api/likes-dislikes/recipe/${recipeId}`,
+          `${import.meta.env.VITE_API_URL}/api/likes-dislikes/recipe/${recipeId}`,
           {
             credentials: "include"
           }
@@ -71,7 +71,7 @@ const VoteButton = ({ recipeId }) => {
       if (isRemovingVote) {
         // Delete the vote
         const deleteResponse = await fetch(
-          `http://localhost:5000/api/likes-dislikes/${user.user_id}/${recipeId}`,
+          `${import.meta.env.VITE_API_URL}/api/likes-dislikes/${user.user_id}/${recipeId}`,
           {
             method: "DELETE",
             credentials: "include"
@@ -97,7 +97,7 @@ const VoteButton = ({ recipeId }) => {
         if (voteStatus !== null) {
           // Update existing vote
           const updateResponse = await fetch(
-            `http://localhost:5000/api/likes-dislikes/${user.user_id}/${recipeId}`,
+            `${import.meta.env.VITE_API_URL}/api/likes-dislikes/${user.user_id}/${recipeId}`,
             {
               method: "PUT",
               headers: {
@@ -117,7 +117,7 @@ const VoteButton = ({ recipeId }) => {
         } else {
           // Create new vote
           const createResponse = await fetch(
-            "http://localhost:5000/api/likes-dislikes",
+            `${import.meta.env.VITE_API_URL}/api/likes-dislikes`,
             {
               method: "POST",
               headers: {

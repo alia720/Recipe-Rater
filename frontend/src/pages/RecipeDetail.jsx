@@ -103,14 +103,14 @@ const RecipeDetail = () => {
       setRecipe(null);
       setPhotos([]);
       try {
-        const recipeRes = await fetch(`http://localhost:5000/api/recipes/${id}`);
+        const recipeRes = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${id}`);
         if (!recipeRes.ok) {
           if (recipeRes.status === 404) throw new Error("Recipe not found.");
           const errData = await recipeRes.json().catch(() => ({}));
           throw new Error(errData.message || `Failed to fetch recipe (${recipeRes.status})`);
         }
         const recipeData = await recipeRes.json();
-        const photosRes = await fetch(`http://localhost:5000/api/photos/recipe/${id}`);
+        const photosRes = await fetch(`${import.meta.env.VITE_API_URL}/api/photos/recipe/${id}`);
         let photosData = [];
         if (photosRes.ok) {
           photosData = await photosRes.json();

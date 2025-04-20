@@ -117,7 +117,7 @@ const EditRecipe = () => {
       try {
         // --- Fetch Recipe Details ---
         const recipeRes = await fetch(
-            `http://localhost:5000/api/recipes/${recipeId}`
+            `${import.meta.env.VITE_API_URL}/api/recipes/${recipeId}`
         );
         if (!recipeRes.ok) {
           if (recipeRes.status === 404) throw new Error("Recipe not found.");
@@ -138,7 +138,7 @@ const EditRecipe = () => {
         setInstructions(parsedInst);
 
         // --- Fetch All Categories ---
-        const catRes = await fetch(`http://localhost:5000/api/categories`);
+        const catRes = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`);
         if (!catRes.ok) {
           throw new Error(`Failed to fetch categories (Status: ${catRes.status})`);
         }
@@ -147,7 +147,7 @@ const EditRecipe = () => {
 
         // --- Fetch Selected Categories for this Recipe ---
         const belongsToRes = await fetch(
-            `http://localhost:5000/api/belongs-to/recipe/${recipeId}`
+            `${import.meta.env.VITE_API_URL}/api/belongs-to/recipe/${recipeId}`
         );
         if (!belongsToRes.ok) {
           throw new Error(`Failed to fetch recipe category links (Status: ${belongsToRes.status})`);
@@ -202,7 +202,7 @@ const EditRecipe = () => {
 
     try {
       // --- Update Recipe Core Data (name, steps) ---
-      const updateRecipeRes = await fetch(`http://localhost:5000/api/recipes/${recipeId}`, {
+      const updateRecipeRes = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${recipeId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -219,7 +219,7 @@ const EditRecipe = () => {
 
       // --- Sync Category Links ---
       // 1. Get current links from server *again* to be safe (or could use state if confident)
-      const currentLinksRes = await fetch(`http://localhost:5000/api/belongs-to/recipe/${recipeId}`);
+      const currentLinksRes = await fetch(`${import.meta.env.VITE_API_URL}/api/belongs-to/recipe/${recipeId}`);
       if (!currentLinksRes.ok) throw new Error("Could not fetch current category links for comparison.");
       const currentLinks = await currentLinksRes.json();
       const currentCategoryIds = currentLinks.map(r => Number(r.category_id)); // Ensure numbers
@@ -231,7 +231,7 @@ const EditRecipe = () => {
       // 3. Perform additions (run in parallel)
       await Promise.all(
           idsToAdd.map(categoryId =>
-              fetch("http://localhost:5000/api/belongs-to", {
+              fetch(`${import.meta.env.VITE_API_URL}/api/belongs-to`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -248,7 +248,7 @@ const EditRecipe = () => {
       // 4. Perform deletions (run in parallel)
       await Promise.all(
           idsToDelete.map(categoryId =>
-              fetch(`http://localhost:5000/api/belongs-to/${categoryId}/${recipeId}`, {
+              fetch(`${import.meta.env.VITE_API_URL}/api/belongs-to/${categoryId}/${recipeId}`, {
                 method: "DELETE",
               }).then(res => {
                 if (!res.ok) console.error(`Failed to delete category link for ${categoryId}`);

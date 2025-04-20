@@ -36,7 +36,7 @@ const Home = () => {
 
   /* ---------- fetch categories once ---------- */
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
+    fetch(`${import.meta.env.VITE_API_URL}/api/categories`)
         .then(r => r.ok ? r.json() : Promise.reject(`Category fetch failed: ${r.status}`))
         .then(data => setAvailableCats(data.data ?? []))
         .catch(err => {
@@ -55,11 +55,11 @@ const Home = () => {
         let isSearch = query && query.trim();
 
         if (isSearch) {
-          url = `http://localhost:5000/api/search?query=${encodeURIComponent(query)}`;
+          url = `${import.meta.env.VITE_API_URL}/api/search?query=${encodeURIComponent(query)}`;
         } else {
           const params = new URLSearchParams({ sort: sortBy });
           if (selectedCat) params.append("category", selectedCat);
-          url = `http://localhost:5000/api/recipes?${params.toString()}`;
+          url = `${import.meta.env.VITE_API_URL}/api/recipes?${params.toString()}`;
         }
 
         const res = await fetch(url);

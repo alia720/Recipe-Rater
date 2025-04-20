@@ -131,7 +131,7 @@ const Profile = () => {
     setErrorRecipes("");
     setRecipes([]); // Clear existing recipes before fetching
     try {
-      const res = await fetch(`http://localhost:5000/api/recipes/user/${userId}`, { signal });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/user/${userId}`, { signal });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ message: `HTTP Error ${res.status}` }));
         throw new Error(err.message || `HTTP Error ${res.status}`);
@@ -169,7 +169,7 @@ const Profile = () => {
     setErrorComments("");
     setUserComments([]); // Clear existing comments
     try {
-      const res = await fetch(`http://localhost:5000/api/comments`, { signal });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/comments`, { signal });
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || `Failed to fetch comments (Status: ${res.status})`);
@@ -184,7 +184,7 @@ const Profile = () => {
             if (signal.aborted) throw new Error('AbortError'); // Check for abort within map
             if (comment.recipe_id) {
               try {
-                const recipeRes = await fetch(`http://localhost:5000/api/recipes/${comment.recipe_id}`, { signal });
+                const recipeRes = await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${comment.recipe_id}`, { signal });
                 if (recipeRes.ok) {
                   const recipeData = await recipeRes.json();
                   return { ...comment, recipeTitle: recipeData.name || 'Unknown Recipe' };
