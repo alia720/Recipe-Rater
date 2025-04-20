@@ -2,7 +2,7 @@
 <p align="center">
   <a href="https://github.com/alia720/Recipe-Rater" target="_blank">View on GitHub</a>
   &nbsp;|&nbsp;
-  <a href="#" target="_blank">Live Demo</a>
+  <a href="https://frontend-production-1d79.up.railway.app/" target="_blank">Live Demo</a>
 </p>
 <p align="center"><em>Final project for CPSC 471: Database Design</em></p>
 
